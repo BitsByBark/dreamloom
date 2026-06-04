@@ -73,8 +73,13 @@ pub async fn github_device_flow_start() -> Result<DeviceFlowStartDto, String> {
 #[tauri::command]
 pub async fn github_device_flow_poll(device_code: String) -> Result<DeviceFlowPollDto, String> {
     match poll_device_flow(&device_code).await? {
-        DeviceFlowPollStatus::Pending | DeviceFlowPollStatus::SlowDown => Ok(DeviceFlowPollDto {
+        DeviceFlowPollStatus::Pending => Ok(DeviceFlowPollDto {
             status: "pending".into(),
+            profile: None,
+            message: None,
+        }),
+        DeviceFlowPollStatus::SlowDown => Ok(DeviceFlowPollDto {
+            status: "slow_down".into(),
             profile: None,
             message: None,
         }),

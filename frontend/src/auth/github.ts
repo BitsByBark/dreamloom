@@ -14,7 +14,7 @@ export type DeviceFlowStart = {
 };
 
 export type DeviceFlowPollResult = {
-  status: "pending" | "authorized" | "expired" | "error";
+  status: "pending" | "slow_down" | "authorized" | "expired" | "error";
   profile?: GithubProfile;
   message?: string;
 };

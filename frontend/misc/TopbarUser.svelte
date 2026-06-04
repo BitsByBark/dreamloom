@@ -1,6 +1,6 @@
 <script lang="ts">
   import { appState } from "$lib/app-state.svelte";
-  import { authStore, refreshRepoMetrics } from "$auth/authStore.svelte";
+  import { authStore, connectGithub, refreshRepoMetrics } from "$auth/authStore.svelte";
   import { openGitModal } from "$git/gitStore.svelte";
   import { settings } from "$settings/settings.svelte";
 
@@ -55,7 +55,15 @@
   });
 </script>
 
-{#if authStore.status === "authenticated" && authStore.user && showTopbar}
+{#if authStore.status === "anonymous"}
+  <div class="topbar-user">
+    <button type="button" class="topbar-connect" onclick={connectGithub}>CONNECT GITHUB</button>
+  </div>
+{:else if authStore.status === "loading"}
+  <div class="topbar-user">
+    <span class="topbar-auth-loading">GITHUB...</span>
+  </div>
+{:else if authStore.status === "authenticated" && authStore.user && showTopbar}
   <div class="topbar-user">
     <div class="topbar-user-info">
       {#if showFilesMetrics || showDiffMetrics || showBranch}
@@ -148,6 +156,28 @@
     color: var(--text);
     font-weight: 600;
     flex-shrink: 0;
+  }
+
+  .topbar-connect {
+    padding: 4px 8px;
+    border: 1px solid var(--panel-border);
+    background: transparent;
+    color: var(--accent, #aacc00);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.75em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  .topbar-connect:hover {
+    background: rgba(170, 204, 0, 0.08);
+  }
+
+  .topbar-auth-loading {
+    color: var(--text-muted);
+    font-size: 0.75em;
+    letter-spacing: 0.06em;
   }
 
   .topbar-git-metrics {

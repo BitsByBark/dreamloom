@@ -134,7 +134,7 @@ export async function refreshRepoMetrics(): Promise<void> {
   }
 }
 
-async function pollOnce(intervalMs: number) {
+async function pollOnce(intervalSeconds: number) {
   const { deviceCode } = authStore.deviceFlow;
   if (!deviceCode) return;
 
@@ -142,7 +142,13 @@ async function pollOnce(intervalMs: number) {
     const result = await deviceFlowPoll(deviceCode);
 
     if (result.status === "pending") {
-      pollTimer = setTimeout(() => pollOnce(intervalMs), intervalMs * 1000);
+      pollTimer = setTimeout(() => pollOnce(intervalSeconds), intervalSeconds * 1000);
+      return;
+    }
+
+    if (result.status === "slow_down") {
+      const nextInterval = intervalSeconds + 5;
+      pollTimer = setTimeout(() => pollOnce(nextInterval), nextInterval * 1000);
       return;
     }
 
@@ -188,8 +194,8 @@ export async function connectGithub(): Promise<void> {
 
     await openUrl(start.verificationUri);
 
-    const intervalMs = Math.max(start.interval, 5);
-    pollTimer = setTimeout(() => pollOnce(intervalMs), intervalMs * 1000);
+    const intervalSeconds = Math.max(start.interval, 5);
+    pollTimer = setTimeout(() => pollOnce(intervalSeconds), intervalSeconds * 1000);
   } catch (err) {
     authStore.status = "anonymous";
     authStore.deviceFlow = {
