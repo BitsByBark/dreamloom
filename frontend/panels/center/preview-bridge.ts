@@ -45,6 +45,12 @@ export type DreamloomPreviewPickMessage = {
   path: number[];
 };
 
+export type DreamloomPreviewHighlightDlMessage = {
+  type: "dreamloom:highlightDl";
+  dlClass: string;
+  occurrenceIndex: number;
+};
+
 type PreviewRect = {
   x: number;
   y: number;
@@ -62,7 +68,8 @@ export type DreamloomPreviewMessage =
   | DreamloomPreviewSelectMessage
   | DreamloomPreviewSelectByIdMessage
   | DreamloomPreviewChainUpdateMessage
-  | DreamloomPreviewPickMessage;
+  | DreamloomPreviewPickMessage
+  | DreamloomPreviewHighlightDlMessage;
 
 export const PREVIEW_BRIDGE_PREFIX = "/__dreamloom_preview__";
 
@@ -208,6 +215,12 @@ window.addEventListener("message",function(e){
   }
   if(d.type==="dreamloom:pick"&&Array.isArray(d.path)){
     pickAt(d.path);
+  }
+  if(d.type==="dreamloom:highlightDl"&&d.dlClass){
+    var nodes=document.getElementsByClassName(d.dlClass);
+    var idx=typeof d.occurrenceIndex==="number"?d.occurrenceIndex:0;
+    var el=nodes[idx]||nodes[0];
+    if(el)applyOutline(el);
   }
 });
 document.addEventListener("click",function(e){

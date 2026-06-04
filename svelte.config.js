@@ -19,6 +19,7 @@ const config = {
       $misc: "frontend/misc",
       $debug: "frontend/debug",
       $settings: "frontend/settings",
+      $properties: "frontend/properties",
     },
     adapter: adapter({
       fallback: "index.html",
