@@ -57,12 +57,92 @@ export const FONT_WEIGHT_OPTIONS = [
 ] as const;
 
 export const FONT_STYLE_OPTIONS = ["normal", "italic", "oblique"] as const;
+
+/** Unicode glyphs for font-style toggle buttons. */
+export const FONT_STYLE_TOGGLES = [
+  { value: "normal", glyph: "A", label: "Normal" },
+  { value: "italic", glyph: "𝘈", label: "Italic" },
+  { value: "oblique", glyph: "𝘰", label: "Oblique" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof FONT_STYLE_OPTIONS)[number];
+  glyph: string;
+  label: string;
+}>;
+
 export const FONT_VARIANT_OPTIONS = ["normal", "small-caps"] as const;
+
+/** Unicode glyphs for font-variant toggle buttons. */
+export const FONT_VARIANT_TOGGLES = [
+  { value: "normal", glyph: "A", label: "Normal variant" },
+  { value: "small-caps", glyph: "ᴬ", label: "Small caps" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof FONT_VARIANT_OPTIONS)[number];
+  glyph: string;
+  label: string;
+}>;
 export const TEXT_ALIGN_OPTIONS = ["left", "center", "right", "justify"] as const;
+
+/** Unicode glyphs for text-align toggle buttons (left → justify). */
+export const TEXT_ALIGN_TOGGLES = [
+  { value: "left", glyph: "◧", label: "Align left" },
+  { value: "center", glyph: "▣", label: "Align center" },
+  { value: "right", glyph: "◨", label: "Align right" },
+  { value: "justify", glyph: "≡", label: "Justify" },
+] as const satisfies ReadonlyArray<{ value: (typeof TEXT_ALIGN_OPTIONS)[number]; glyph: string; label: string }>;
 export const TEXT_DECORATION_OPTIONS = ["none", "underline", "overline", "line-through"] as const;
+
+/** Unicode glyphs for text-decoration toggle buttons. */
+export const TEXT_DECORATION_TOGGLES = [
+  { value: "none", glyph: "∅", label: "No decoration" },
+  { value: "underline", glyph: "▁", label: "Underline" },
+  { value: "overline", glyph: "▔", label: "Overline" },
+  { value: "line-through", glyph: "▬", label: "Line through" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof TEXT_DECORATION_OPTIONS)[number];
+  glyph: string;
+  label: string;
+}>;
 export const TEXT_TRANSFORM_OPTIONS = ["none", "uppercase", "lowercase", "capitalize"] as const;
+
+/** Unicode glyphs for text-transform toggle buttons. */
+export const TEXT_TRANSFORM_TOGGLES = [
+  { value: "none", glyph: "—", label: "No transform" },
+  { value: "uppercase", glyph: "AA", label: "Uppercase" },
+  { value: "lowercase", glyph: "aa", label: "Lowercase" },
+  { value: "capitalize", glyph: "Aa", label: "Capitalize" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof TEXT_TRANSFORM_OPTIONS)[number];
+  glyph: string;
+  label: string;
+}>;
+
 export const WORD_BREAK_OPTIONS = ["normal", "break-all", "keep-all"] as const;
+
+/** Unicode glyphs for word-break toggle buttons. */
+export const WORD_BREAK_TOGGLES = [
+  { value: "normal", glyph: "—", label: "Normal break" },
+  { value: "break-all", glyph: "⤬", label: "Break all" },
+  { value: "keep-all", glyph: "字", label: "Keep all" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof WORD_BREAK_OPTIONS)[number];
+  glyph: string;
+  label: string;
+}>;
+
 export const WHITE_SPACE_OPTIONS = ["normal", "nowrap", "pre", "pre-wrap", "pre-line"] as const;
+
+/** Unicode glyphs for white-space toggle buttons. */
+export const WHITE_SPACE_TOGGLES = [
+  { value: "normal", glyph: "—", label: "Normal white space" },
+  { value: "nowrap", glyph: "⊣", label: "No wrap" },
+  { value: "pre", glyph: "␣", label: "Pre" },
+  { value: "pre-wrap", glyph: "⤶", label: "Pre-wrap" },
+  { value: "pre-line", glyph: "↵", label: "Pre-line" },
+] as const satisfies ReadonlyArray<{
+  value: (typeof WHITE_SPACE_OPTIONS)[number];
+  glyph: string;
+  label: string;
+}>;
 
 const LINE_HEIGHT_KEYWORDS = new Set<LineHeightUnit>(["normal"]);
 

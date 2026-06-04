@@ -1,5 +1,6 @@
 <script lang="ts">
   import "./properties-theme.css";
+  import { maybeCommitProperty } from "$injector";
   import LayoutField from "./LayoutField.svelte";
   import PropUnitSelect from "./PropUnitSelect.svelte";
   import {
@@ -14,9 +15,10 @@
     label: string;
     value?: string;
     disabled?: boolean;
+    cssProperty?: string;
   };
 
-  let { label, value = $bindable(""), disabled = false }: Props = $props();
+  let { label, value = $bindable(""), disabled = false, cssProperty }: Props = $props();
 
   let amount = $state("");
   let unit = $state<SizeDimensionUnit>("px");
@@ -28,7 +30,9 @@
   });
 
   function commit() {
-    value = composeSizeValue(amount, unit);
+    const next = composeSizeValue(amount, unit);
+    value = next;
+    maybeCommitProperty(cssProperty, next);
   }
 
   function onUnitChange() {

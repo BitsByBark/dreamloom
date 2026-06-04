@@ -20,6 +20,9 @@ const config = {
       $debug: "frontend/debug",
       $settings: "frontend/settings",
       $properties: "frontend/properties",
+      $injector: "frontend/src/injector",
+      $auth: "frontend/src/auth",
+      $assets: "assets",
     },
     adapter: adapter({
       fallback: "index.html",

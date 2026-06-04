@@ -1,5 +1,6 @@
 <script lang="ts">
   import "./properties-theme.css";
+  import { maybeCommitProperty } from "$injector";
 
   type ListRow = { kind: "option"; value: string } | { kind: "hint"; message: string } | { kind: "empty" };
 
@@ -10,6 +11,7 @@
     placeholder?: string;
     allowEmpty?: boolean;
     listboxId?: string;
+    cssProperty?: string;
   };
 
   let {
@@ -19,6 +21,7 @@
     placeholder = "Search…",
     allowEmpty = true,
     listboxId = "prop-search-listbox",
+    cssProperty,
   }: Props = $props();
 
   let query = $state("");
@@ -97,6 +100,7 @@
     query = next;
     value = next;
     closeList();
+    maybeCommitProperty(cssProperty, next);
   }
 
   function activateHighlighted() {

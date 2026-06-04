@@ -1,5 +1,6 @@
 <script lang="ts">
   import "./properties-theme.css";
+  import { maybeCommitProperty } from "$injector";
   import LayoutField from "./LayoutField.svelte";
   import PropUnitSelect from "./PropUnitSelect.svelte";
   import {
@@ -14,9 +15,11 @@
     label: string;
     value?: string;
     disabled?: boolean;
+    cssProperty?: string;
+    onCommit?: () => void;
   };
 
-  let { label, value = $bindable(""), disabled = false }: Props = $props();
+  let { label, value = $bindable(""), disabled = false, cssProperty, onCommit }: Props = $props();
 
   let amount = $state("");
   let unit = $state<AspectRatioUnit>("—");
@@ -28,7 +31,10 @@
   });
 
   function commit() {
-    value = composeAspectSlot(amount, unit);
+    const next = composeAspectSlot(amount, unit);
+    value = next;
+    maybeCommitProperty(cssProperty, next);
+    onCommit?.();
   }
 
   function onUnitChange() {

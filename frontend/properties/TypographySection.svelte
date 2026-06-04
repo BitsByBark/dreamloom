@@ -1,33 +1,31 @@
 <script lang="ts">
   import "./properties-theme.css";
-  import { currentBridgeDlClass, editorBridge } from "$lib/bridge-selection.svelte";
+  import { editorBridge } from "$lib/bridge-selection.svelte";
+  import { maybeCommitProperty } from "$injector";
   import LayoutField from "./LayoutField.svelte";
   import PropSearchSelect from "./PropSearchSelect.svelte";
   import { selectionIdentity } from "./property-pseudo-state";
   import PropertySection from "./PropertySection.svelte";
+  import FontStyleToggle from "./FontStyleToggle.svelte";
+  import FontVariantToggle from "./FontVariantToggle.svelte";
+  import TextAlignToggle from "./TextAlignToggle.svelte";
+  import TextDecorationToggle from "./TextDecorationToggle.svelte";
+  import TextTransformToggle from "./TextTransformToggle.svelte";
+  import WhiteSpaceToggle from "./WhiteSpaceToggle.svelte";
+  import WordBreakToggle from "./WordBreakToggle.svelte";
+  import TypographyColorInput from "./TypographyColorInput.svelte";
   import TypographyDimensionInput from "./TypographyDimensionInput.svelte";
   import { getTypographyComputedValues } from "./typography-computed";
   import {
     emptyTypographyDraft,
     FONT_SIZE_UNITS,
-    FONT_STYLE_OPTIONS,
-    FONT_VARIANT_OPTIONS,
     FONT_WEIGHT_OPTIONS,
     LETTER_SPACING_UNITS,
     LINE_HEIGHT_UNITS,
-    TEXT_ALIGN_OPTIONS,
-    TEXT_DECORATION_OPTIONS,
-    TEXT_TRANSFORM_OPTIONS,
     typographyDraftFromComputed,
-    WHITE_SPACE_OPTIONS,
-    WORD_BREAK_OPTIONS,
   } from "./typography-fields";
 
   const LINE_HEIGHT_KEYWORDS = new Set(["normal"]);
-
-  const hasSelection = $derived(
-    currentBridgeDlClass() !== null && editorBridge.selection !== null,
-  );
 
   const selectionKey = $derived(selectionIdentity(editorBridge.selection));
 
@@ -38,13 +36,13 @@
     draft = typographyDraftFromComputed(getTypographyComputedValues());
   });
 
-  function onColorInput(event: Event) {
-    const el = event.currentTarget as HTMLInputElement;
-    draft.color = el.value;
+  function onTextInput(cssProperty: string, event: Event) {
+    const next = (event.currentTarget as HTMLInputElement).value;
+    maybeCommitProperty(cssProperty, next);
   }
 </script>
 
-<PropertySection title="Typography" startExpanded={true}>
+<PropertySection title="Typography">
   <div class="prop-stack prop-typography-section">
     <LayoutField label="FONT FAMILY">
       <input
@@ -52,7 +50,7 @@
         class="prop-input"
         placeholder="—"
         bind:value={draft.fontFamily}
-        disabled={!hasSelection}
+        oninput={(e) => onTextInput("font-family", e)}
       />
     </LayoutField>
 
@@ -62,7 +60,7 @@
         bind:value={draft.fontSize}
         units={FONT_SIZE_UNITS}
         defaultUnit="px"
-        disabled={!hasSelection}
+        cssProperty="font-size"
       />
 
       <LayoutField label="FONT WEIGHT">
@@ -70,30 +68,34 @@
           listboxId="typography-font-weight"
           options={FONT_WEIGHT_OPTIONS}
           bind:value={draft.fontWeight}
-          disabled={!hasSelection}
           placeholder="Search font-weight…"
+          cssProperty="font-weight"
         />
       </LayoutField>
     </div>
 
     <div class="prop-size-grid">
       <LayoutField label="FONT STYLE">
-        <PropSearchSelect
-          listboxId="typography-font-style"
-          options={FONT_STYLE_OPTIONS}
-          bind:value={draft.fontStyle}
-          disabled={!hasSelection}
-          placeholder="Search font-style…"
-        />
+        <FontStyleToggle bind:value={draft.fontStyle} cssProperty="font-style" />
       </LayoutField>
 
       <LayoutField label="FONT VARIANT">
-        <PropSearchSelect
-          listboxId="typography-font-variant"
-          options={FONT_VARIANT_OPTIONS}
-          bind:value={draft.fontVariant}
-          disabled={!hasSelection}
-          placeholder="Search font-variant…"
+        <FontVariantToggle bind:value={draft.fontVariant} cssProperty="font-variant" />
+      </LayoutField>
+    </div>
+
+    <div class="prop-size-grid">
+      <LayoutField label="COLOR">
+        <TypographyColorInput bind:value={draft.color} cssProperty="color" />
+      </LayoutField>
+
+      <LayoutField label="TEXT SHADOW">
+        <input
+          type="text"
+          class="prop-input"
+          placeholder="—"
+          bind:value={draft.textShadow}
+          oninput={(e) => onTextInput("text-shadow", e)}
         />
       </LayoutField>
     </div>
@@ -105,7 +107,7 @@
         units={LINE_HEIGHT_UNITS}
         keywordUnits={LINE_HEIGHT_KEYWORDS}
         defaultUnit="px"
-        disabled={!hasSelection}
+        cssProperty="line-height"
       />
 
       <TypographyDimensionInput
@@ -113,78 +115,32 @@
         bind:value={draft.letterSpacing}
         units={LETTER_SPACING_UNITS}
         defaultUnit="px"
-        disabled={!hasSelection}
+        cssProperty="letter-spacing"
       />
     </div>
 
-    <LayoutField label="TEXT ALIGN">
-      <PropSearchSelect
-        listboxId="typography-text-align"
-        options={TEXT_ALIGN_OPTIONS}
-        bind:value={draft.textAlign}
-        disabled={!hasSelection}
-        placeholder="Search text-align…"
-      />
-    </LayoutField>
+    <div class="prop-size-grid">
+      <LayoutField label="TEXT ALIGN">
+        <TextAlignToggle bind:value={draft.textAlign} cssProperty="text-align" />
+      </LayoutField>
 
-    <LayoutField label="TEXT DECORATION">
-      <PropSearchSelect
-        listboxId="typography-text-decoration"
-        options={TEXT_DECORATION_OPTIONS}
-        bind:value={draft.textDecoration}
-        disabled={!hasSelection}
-        placeholder="Search text-decoration…"
-      />
-    </LayoutField>
+      <LayoutField label="TEXT DECORATION">
+        <TextDecorationToggle bind:value={draft.textDecoration} cssProperty="text-decoration" />
+      </LayoutField>
+    </div>
 
-    <LayoutField label="TEXT TRANSFORM">
-      <PropSearchSelect
-        listboxId="typography-text-transform"
-        options={TEXT_TRANSFORM_OPTIONS}
-        bind:value={draft.textTransform}
-        disabled={!hasSelection}
-        placeholder="Search text-transform…"
-      />
-    </LayoutField>
+    <div class="prop-size-grid">
+      <LayoutField label="TEXT TRANSFORM">
+        <TextTransformToggle bind:value={draft.textTransform} cssProperty="text-transform" />
+      </LayoutField>
 
-    <LayoutField label="COLOR">
-      <input
-        type="color"
-        class="prop-input prop-color-input"
-        value={draft.color || "#808080"}
-        disabled={!hasSelection}
-        oninput={onColorInput}
-      />
-    </LayoutField>
-
-    <LayoutField label="WORD BREAK">
-      <PropSearchSelect
-        listboxId="typography-word-break"
-        options={WORD_BREAK_OPTIONS}
-        bind:value={draft.wordBreak}
-        disabled={!hasSelection}
-        placeholder="Search word-break…"
-      />
-    </LayoutField>
+      <LayoutField label="WORD BREAK">
+        <WordBreakToggle bind:value={draft.wordBreak} cssProperty="word-break" />
+      </LayoutField>
+    </div>
 
     <LayoutField label="WHITE SPACE">
-      <PropSearchSelect
-        listboxId="typography-white-space"
-        options={WHITE_SPACE_OPTIONS}
-        bind:value={draft.whiteSpace}
-        disabled={!hasSelection}
-        placeholder="Search white-space…"
-      />
-    </LayoutField>
-
-    <LayoutField label="TEXT SHADOW">
-      <input
-        type="text"
-        class="prop-input"
-        placeholder="—"
-        bind:value={draft.textShadow}
-        disabled={!hasSelection}
-      />
+      <WhiteSpaceToggle bind:value={draft.whiteSpace} cssProperty="white-space" />
     </LayoutField>
   </div>
 </PropertySection>
@@ -192,16 +148,5 @@
 <style>
   .prop-typography-section {
     gap: 8px;
-  }
-
-  .prop-color-input {
-    box-sizing: border-box;
-    min-height: var(--prop-control-min-height, 1.85em);
-    padding: 0.2em;
-    cursor: pointer;
-  }
-
-  .prop-color-input:disabled {
-    cursor: not-allowed;
   }
 </style>

@@ -9,7 +9,7 @@
     children: Snippet;
   };
 
-  let { title, startExpanded = true, children }: Props = $props();
+  let { title, startExpanded = false, children }: Props = $props();
 
   let expanded = $state(untrack(() => startExpanded));
 

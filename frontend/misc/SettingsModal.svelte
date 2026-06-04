@@ -9,6 +9,11 @@
   import { rescheduleAllEvictions } from "$lib/center-tabs.svelte";
   import { persistSettings, settings } from "$settings/settings.svelte";
   import {
+    authStore,
+    connectGithub,
+    disconnectGithub,
+  } from "$auth/authStore.svelte";
+  import {
     clampLogFontSize,
     clampZoom,
     MIN_INACTIVE_EVICTION_DELAY_MS,
@@ -18,7 +23,7 @@
     MAX_ZOOM,
   } from "$settings/storage";
 
-  type SettingsTab = "behavior" | "debug";
+  type SettingsTab = "behavior" | "accounts" | "debug";
 
   type Props = {
     open: boolean;
@@ -115,6 +120,16 @@
           type="button"
           role="tab"
           class="tab-btn"
+          class:active={activeTab === "accounts"}
+          aria-selected={activeTab === "accounts"}
+          onclick={() => (activeTab = "accounts")}
+        >
+          Accounts
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
           class:active={activeTab === "debug"}
           aria-selected={activeTab === "debug"}
           onclick={() => (activeTab = "debug")}
@@ -162,6 +177,67 @@
               Reset panel sizes
             </button>
           </div>
+        </div>
+      {:else if activeTab === "accounts"}
+        <div class="tab-panel" role="tabpanel" aria-label="Accounts">
+          <section class="accounts-section">
+            <h3 class="accounts-heading">GitHub</h3>
+            {#if authStore.status === "authenticated" && authStore.user}
+              <div class="accounts-connected">
+                <img
+                  class="accounts-avatar"
+                  src={authStore.user.avatarUrl}
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+                <div class="accounts-meta">
+                  <span class="accounts-login">{authStore.user.login}</span>
+                  <span class="accounts-status">Connected</span>
+                </div>
+              </div>
+              <button type="button" class="action-btn" onclick={disconnectGithub}>
+                Disconnect GitHub
+              </button>
+            {:else}
+              <p class="note">
+                Connect GitHub to show your profile and repo stats in the top bar.
+              </p>
+              <button
+                type="button"
+                class="action-btn action-btn-accent"
+                disabled={authStore.status === "loading"}
+                onclick={connectGithub}
+              >
+                {authStore.status === "loading" ? "Connecting…" : "Connect GitHub"}
+              </button>
+            {/if}
+          </section>
+
+          <section class="accounts-section">
+            <h3 class="accounts-heading">Top bar</h3>
+            <p class="note">Choose what shows on the right side of the menubar when signed in.</p>
+            <label class="field field-row">
+              <input type="checkbox" bind:checked={settings.topbarShowAvatar} />
+              <span class="label">Profile photo</span>
+            </label>
+            <label class="field field-row">
+              <input type="checkbox" bind:checked={settings.topbarShowUsername} />
+              <span class="label">Username</span>
+            </label>
+            <label class="field field-row">
+              <input type="checkbox" bind:checked={settings.topbarShowDiff} />
+              <span class="label">Line diff (+added / removed−)</span>
+            </label>
+            <label class="field field-row">
+              <input type="checkbox" bind:checked={settings.topbarShowFilesChanged} />
+              <span class="label">Files changed</span>
+            </label>
+            <label class="field field-row">
+              <input type="checkbox" bind:checked={settings.topbarShowBranch} />
+              <span class="label">Branch name</span>
+            </label>
+          </section>
         </div>
       {:else}
         <div class="tab-panel" role="tabpanel" aria-label="Debug">
@@ -310,6 +386,67 @@
 
   .action-btn:hover {
     background: #1c1c1c;
+  }
+
+  .action-btn-accent {
+    color: var(--accent, #aacc00);
+    border-color: #3a4218;
+  }
+
+  .action-btn-accent:hover:not(:disabled) {
+    background: #161a0c;
+  }
+
+  .action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .accounts-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 360px;
+  }
+
+  .accounts-heading {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .accounts-connected {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .accounts-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--panel-border);
+  }
+
+  .accounts-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .accounts-login {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .accounts-status {
+    color: var(--text-muted);
+    font-size: 12px;
   }
 
   .note {

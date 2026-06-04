@@ -6,6 +6,7 @@
   --text-muted: #888888;
   --handle: #333333;
   --handle-hover: #444444;
+  --accent: #aacc00;
   --font-family: "IBM Plex Mono", ui-monospace, monospace;
 }
 
@@ -36,5 +37,10 @@ body {
 }
 
 .text-zoom {
-  zoom: var(--text-zoom, 1);
+  /* font-size scales text without breaking narrow-panel line wrapping (zoom shrinks layout width). */
+  font-size: calc(14px * var(--text-zoom, 1));
+}
+
+.text-zoom .cm-scroller {
+  font-size: calc(13px * var(--text-zoom, 1));
 }

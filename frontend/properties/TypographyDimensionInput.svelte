@@ -1,6 +1,7 @@
 <script lang="ts">
   import { untrack } from "svelte";
   import "./properties-theme.css";
+  import { maybeCommitProperty } from "$injector";
   import LayoutField from "./LayoutField.svelte";
   import PropUnitSelect from "./PropUnitSelect.svelte";
   import {
@@ -16,6 +17,7 @@
     units: readonly string[];
     keywordUnits?: Set<string>;
     defaultUnit: string;
+    cssProperty?: string;
   };
 
   let {
@@ -25,6 +27,7 @@
     units,
     keywordUnits = new Set<string>(),
     defaultUnit,
+    cssProperty,
   }: Props = $props();
 
   let amount = $state("");
@@ -37,7 +40,9 @@
   });
 
   function commit() {
-    value = composeTypographyDimension(amount, unit, keywordUnits);
+    const next = composeTypographyDimension(amount, unit, keywordUnits);
+    value = next;
+    maybeCommitProperty(cssProperty, next);
   }
 
   function onUnitChange() {

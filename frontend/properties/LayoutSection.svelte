@@ -1,6 +1,7 @@
 <script lang="ts">
   import "./properties-theme.css";
-  import { currentBridgeDlClass, editorBridge } from "$lib/bridge-selection.svelte";
+  import { editorBridge } from "$lib/bridge-selection.svelte";
+  import { maybeCommitProperty } from "$injector";
   import { getLayoutComputedValues } from "./layout-computed";
   import {
     ALIGN_CONTENT_OPTIONS,
@@ -24,10 +25,6 @@
   import { selectionIdentity } from "./property-pseudo-state";
   import PropertySection from "./PropertySection.svelte";
 
-  const hasSelection = $derived(
-    currentBridgeDlClass() !== null && editorBridge.selection !== null,
-  );
-
   const selectionKey = $derived(selectionIdentity(editorBridge.selection));
 
   let draft = $state(emptyLayoutDraft());
@@ -40,17 +37,22 @@
   const showFlex = $derived(isFlexDisplay(draft.display));
   const showGrid = $derived(isGridDisplay(draft.display));
   const showInsets = $derived(showsPositionOffsets(draft.position));
+
+  function onTextInput(cssProperty: string, event: Event) {
+    const next = (event.currentTarget as HTMLInputElement).value;
+    maybeCommitProperty(cssProperty, next);
+  }
 </script>
 
-<PropertySection title="Layout" startExpanded={true}>
+<PropertySection title="Layout">
   <div class="prop-stack">
     <LayoutField label="DISPLAY">
       <PropSearchSelect
         listboxId="layout-display"
         options={DISPLAY_OPTIONS}
         bind:value={draft.display}
-        disabled={!hasSelection}
         placeholder="Search display…"
+        cssProperty="display"
       />
     </LayoutField>
 
@@ -61,8 +63,8 @@
             listboxId="layout-flex-direction"
             options={FLEX_DIRECTION_OPTIONS}
             bind:value={draft.flexDirection}
-            disabled={!hasSelection}
             placeholder="Search flex-direction…"
+            cssProperty="flex-direction"
           />
         </LayoutField>
 
@@ -71,8 +73,8 @@
             listboxId="layout-flex-wrap"
             options={FLEX_WRAP_OPTIONS}
             bind:value={draft.flexWrap}
-            disabled={!hasSelection}
             placeholder="Search flex-wrap…"
+            cssProperty="flex-wrap"
           />
         </LayoutField>
 
@@ -81,8 +83,8 @@
             listboxId="layout-justify-content"
             options={JUSTIFY_CONTENT_OPTIONS}
             bind:value={draft.justifyContent}
-            disabled={!hasSelection}
             placeholder="Search justify-content…"
+            cssProperty="justify-content"
           />
         </LayoutField>
 
@@ -91,8 +93,8 @@
             listboxId="layout-align-items"
             options={ALIGN_ITEMS_OPTIONS}
             bind:value={draft.alignItems}
-            disabled={!hasSelection}
             placeholder="Search align-items…"
+            cssProperty="align-items"
           />
         </LayoutField>
 
@@ -101,8 +103,8 @@
             listboxId="layout-align-content"
             options={ALIGN_CONTENT_OPTIONS}
             bind:value={draft.alignContent}
-            disabled={!hasSelection}
             placeholder="Search align-content…"
+            cssProperty="align-content"
           />
         </LayoutField>
 
@@ -110,9 +112,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.gap}
             placeholder="—"
+            oninput={(e) => onTextInput("gap", e)}
           />
         </LayoutField>
       </div>
@@ -124,9 +126,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.gridTemplateColumns}
             placeholder="—"
+            oninput={(e) => onTextInput("grid-template-columns", e)}
           />
         </LayoutField>
 
@@ -134,9 +136,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.gridTemplateRows}
             placeholder="—"
+            oninput={(e) => onTextInput("grid-template-rows", e)}
           />
         </LayoutField>
 
@@ -144,9 +146,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.gap}
             placeholder="—"
+            oninput={(e) => onTextInput("gap", e)}
           />
         </LayoutField>
 
@@ -155,8 +157,8 @@
             listboxId="layout-grid-auto-flow"
             options={GRID_AUTO_FLOW_OPTIONS}
             bind:value={draft.gridAutoFlow}
-            disabled={!hasSelection}
             placeholder="Search auto-flow…"
+            cssProperty="grid-auto-flow"
           />
         </LayoutField>
       </div>
@@ -167,8 +169,8 @@
         listboxId="layout-position"
         options={POSITION_OPTIONS}
         bind:value={draft.position}
-        disabled={!hasSelection}
         placeholder="Search position…"
+        cssProperty="position"
       />
     </LayoutField>
 
@@ -178,9 +180,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.top}
             placeholder="—"
+            oninput={(e) => onTextInput("top", e)}
           />
         </LayoutField>
 
@@ -188,9 +190,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.right}
             placeholder="—"
+            oninput={(e) => onTextInput("right", e)}
           />
         </LayoutField>
 
@@ -198,9 +200,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.bottom}
             placeholder="—"
+            oninput={(e) => onTextInput("bottom", e)}
           />
         </LayoutField>
 
@@ -208,9 +210,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.left}
             placeholder="—"
+            oninput={(e) => onTextInput("left", e)}
           />
         </LayoutField>
 
@@ -218,9 +220,9 @@
           <input
             type="text"
             class="prop-input"
-            disabled={!hasSelection}
             bind:value={draft.zIndex}
             placeholder="—"
+            oninput={(e) => onTextInput("z-index", e)}
           />
         </LayoutField>
       </div>
@@ -231,8 +233,8 @@
         listboxId="layout-float"
         options={FLOAT_OPTIONS}
         bind:value={draft.float}
-        disabled={!hasSelection}
         placeholder="Search float…"
+        cssProperty="float"
       />
     </LayoutField>
 
@@ -241,8 +243,8 @@
         listboxId="layout-clear"
         options={CLEAR_OPTIONS}
         bind:value={draft.clear}
-        disabled={!hasSelection}
         placeholder="Search clear…"
+        cssProperty="clear"
       />
     </LayoutField>
   </div>

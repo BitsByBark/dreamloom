@@ -1,5 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
 import { dirname, join } from "@tauri-apps/api/path";
-import { readDir } from "@tauri-apps/plugin-fs";
 
 export type TreeNode = {
   name: string;
@@ -22,8 +22,10 @@ export function isDescendantPath(parentPath: string, childPath: string): boolean
   return child.startsWith(`${parent}/`);
 }
 
+type RawEntry = { name: string; isDirectory: boolean };
+
 export async function readDirectoryEntries(dirPath: string): Promise<TreeNode[]> {
-  const entries = await readDir(dirPath);
+  const entries = await invoke<RawEntry[]>("list_directory", { path: dirPath });
 
   const sorted = [...entries].sort((a, b) => {
     if (a.isDirectory !== b.isDirectory) {

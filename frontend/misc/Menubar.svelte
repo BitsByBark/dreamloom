@@ -1,6 +1,8 @@
 <script lang="ts">
   import { openDirectory } from "$lib/open-directory";
   import SettingsModal from "$misc/SettingsModal.svelte";
+  import TopbarUser from "$misc/TopbarUser.svelte";
+  import wordmarkUrl from "$assets/images/Wordmark.png";
 
   let fileMenuOpen = $state(false);
   let settingsMenuOpen = $state(false);
@@ -50,6 +52,10 @@
 <svelte:window onclick={onWindowClick} />
 
 <header class="menubar ui-chrome">
+  <div class="menubar-brand">
+    <img class="menubar-wordmark" src={wordmarkUrl} alt="Dreamloom" />
+  </div>
+
   <div class="menu-root">
     <button
       type="button"
@@ -87,6 +93,9 @@
       </div>
     {/if}
   </div>
+
+  <div class="menubar-spacer" aria-hidden="true"></div>
+  <TopbarUser />
 </header>
 
 <SettingsModal open={settingsModalOpen} onclose={closeSettingsModal} />
@@ -94,18 +103,47 @@
 <style>
   .menubar {
     display: flex;
-    align-items: stretch;
-    height: 28px;
+    align-items: center;
+    width: 100%;
+    height: 40px;
     flex-shrink: 0;
     background: #0a0a0a;
     border-bottom: 1px solid var(--panel-border);
   }
 
+  .menubar-spacer {
+    flex: 1;
+    min-width: 8px;
+  }
+
+  .menubar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 100%;
+    padding: 5px 20px 5px 20px;
+    border-right: 1px solid var(--panel-border);
+  }
+
+  .menubar-wordmark {
+    display: block;
+    height: 50%;
+    width: auto;
+    max-height: 50px;
+    max-width: auto;
+    object-fit: contain;
+    object-position: center;
+  }
+
   .menu-root {
+    align-self: stretch;
     position: relative;
   }
 
   .menu-trigger {
+    display: flex;
+    align-items: center;
     height: 100%;
     padding: 0 12px;
     border: none;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import "./properties-theme.css";
-  import { currentBridgeDlClass, editorBridge } from "$lib/bridge-selection.svelte";
+  import { editorBridge } from "$lib/bridge-selection.svelte";
   import { ACCENT_COLOR } from "$settings/storage";
   import { PROPERTY_PSEUDO_OPTIONS, selectionIdentity } from "./property-pseudo-state";
   import {
@@ -10,9 +10,7 @@
     togglePropertyPseudoCollapsed,
   } from "./properties-pseudo.svelte";
 
-  const hasSelection = $derived(
-    currentBridgeDlClass() !== null && editorBridge.selection !== null,
-  );
+  const hasBridgeSelection = $derived(editorBridge.selection !== null);
 
   const defaultOption = PROPERTY_PSEUDO_OPTIONS[0];
   const variantOptions = PROPERTY_PSEUDO_OPTIONS.slice(1);
@@ -50,7 +48,7 @@
         class="state-selector-btn state-selector-btn-default"
         class:active={propertiesPseudo.active === defaultOption.id}
         style:--state-accent={ACCENT_COLOR}
-        disabled={!hasSelection}
+        disabled={!hasBridgeSelection}
         aria-pressed={propertiesPseudo.active === defaultOption.id}
         onclick={() => setPropertyPseudoState(defaultOption.id)}
       >
@@ -64,7 +62,7 @@
             class="state-selector-btn"
             class:active={propertiesPseudo.active === option.id}
             style:--state-accent={ACCENT_COLOR}
-            disabled={!hasSelection}
+            disabled={!hasBridgeSelection}
             aria-pressed={propertiesPseudo.active === option.id}
             onclick={() => setPropertyPseudoState(option.id)}
           >

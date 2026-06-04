@@ -1,7 +1,8 @@
 <script lang="ts">
   import "./properties-theme.css";
-  import { currentBridgeDlClass, editorBridge } from "$lib/bridge-selection.svelte";
+  import { editorBridge } from "$lib/bridge-selection.svelte";
   import BoxModelDiagram from "./BoxModelDiagram.svelte";
+  import { camelToCssProperty, maybeCommitProperty } from "$injector";
   import { selectionIdentity } from "./property-pseudo-state";
   import PropertySection from "./PropertySection.svelte";
   import { getSpacingComputedValues } from "./spacing-computed";
@@ -11,10 +12,6 @@
     type SpacingDraft,
     type SpacingFieldKey,
   } from "./spacing-fields";
-
-  const hasSelection = $derived(
-    currentBridgeDlClass() !== null && editorBridge.selection !== null,
-  );
 
   const selectionKey = $derived(selectionIdentity(editorBridge.selection));
 
@@ -27,9 +24,10 @@
 
   function onDraftChange(key: SpacingFieldKey, value: string) {
     draft = { ...draft, [key]: value };
+    maybeCommitProperty(camelToCssProperty(key), value);
   }
 </script>
 
-<PropertySection title="Spacing" startExpanded={true}>
-  <BoxModelDiagram {draft} disabled={!hasSelection} onDraftChange={onDraftChange} />
+<PropertySection title="Spacing">
+  <BoxModelDiagram {draft} onDraftChange={onDraftChange} />
 </PropertySection>

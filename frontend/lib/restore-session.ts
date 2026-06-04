@@ -3,25 +3,24 @@ import { appState } from "$lib/app-state.svelte";
 import { centerTabs, focusCenterTab, openCenterTab } from "$lib/center-tabs.svelte";
 import { restoreProjectDirectory } from "$lib/open-directory";
 import { defaultSession, loadSession, saveSession } from "$lib/session-storage";
-
 export async function restoreSession(): Promise<void> {
   const session = loadSession();
+  const directory = session.openDirectory;
 
-  if (!session.openDirectory) {
+  if (!directory) {
     return;
   }
 
-  if (!(await exists(session.openDirectory))) {
+  if (!(await exists(directory))) {
     saveSession({ ...defaultSession });
     return;
   }
 
   const needsDirectory =
-    appState.openDirectory !== session.openDirectory ||
-    appState.devServerStatus !== "running";
+    appState.openDirectory !== directory || appState.devServerStatus !== "running";
 
   if (needsDirectory) {
-    await restoreProjectDirectory(session.openDirectory);
+    await restoreProjectDirectory(directory);
   }
 
   for (const path of session.tabPaths) {
