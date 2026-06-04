@@ -35,6 +35,27 @@ function write(level: LogLevel, message: string, force = false): void {
   logState.entries = [...logState.entries, entry].slice(-MAX_ENTRIES);
 }
 
+/**
+ * Developer hypothesis trace. Routed to the DreamLoom log panel when debug mode
+ * is on; silently dropped otherwise (no panel entry, no session-log line).
+ */
+export function logDebugTrace(location: string, message: string, data?: unknown): void {
+  if (!settings.debugMode) {
+    return;
+  }
+
+  let suffix = "";
+  if (data !== undefined) {
+    try {
+      suffix = ` ${JSON.stringify(data)}`;
+    } catch {
+      suffix = " [unserializable data]";
+    }
+  }
+
+  write("perf", `[trace] ${location}: ${message}${suffix}`);
+}
+
 export function formatLogTime(time: number): string {
   return new Date(time).toLocaleTimeString(undefined, {
     hour: "2-digit",

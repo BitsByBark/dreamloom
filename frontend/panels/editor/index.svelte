@@ -8,6 +8,7 @@
   import { editorBridge } from "$lib/bridge-selection.svelte";
   import { centerTabs } from "$lib/center-tabs.svelte";
   import { findElementLineRange, findIdLineRange } from "$lib/find-element-lines";
+  import { logDebugTrace } from "$debug/logging.svelte";
   import { amoledTheme } from "$lib/codemirror/amoled-theme";
   import {
     accentHighlightBackground,
@@ -36,9 +37,12 @@
   }
 
   function applyBridgeSelection() {
-    // #region agent log
-    fetch('http://127.0.0.1:7790/ingest/b88598fb-327a-4542-ba31-cc39203b33a7',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a9a834'},body:JSON.stringify({sessionId:'a9a834',hypothesisId:'D',location:'editor/index.svelte:applyBridgeSelection',message:'enter',data:{hasView:!!view,hasSel:!!editorBridge.selection,docLines:view?.state.doc.lines,docLen:view?.state.doc.length},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
+    logDebugTrace("editor/index.svelte:applyBridgeSelection", "enter", {
+      hasView: !!view,
+      hasSel: !!editorBridge.selection,
+      docLines: view?.state.doc.lines,
+      docLen: view?.state.doc.length,
+    });
     if (!view) {
       return;
     }
@@ -53,9 +57,11 @@
     // if recompute fails (class not in current buffer text yet), fall back to stored lines, never clear.
     const text = view.state.doc.toString();
     const recomputed =
-      sel.matchKind === "id"
-        ? findIdLineRange(text, sel.id)
-        : findElementLineRange(text, sel.dlClass, sel.occurrenceIndex);
+      sel.matchKind === "dl"
+        ? findElementLineRange(text, sel.dlClass, sel.occurrenceIndex)
+        : sel.matchKind === "id"
+          ? findIdLineRange(text, sel.id)
+          : null;
     const range = recomputed ?? { from: sel.fromLine, to: sel.toLine };
 
     const bg = accentHighlightBackground(ACCENT_COLOR);
@@ -72,9 +78,15 @@
       selection: { anchor: lineObj.from },
       scrollIntoView: true,
     });
-    // #region agent log
-    fetch('http://127.0.0.1:7790/ingest/b88598fb-327a-4542-ba31-cc39203b33a7',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a9a834'},body:JSON.stringify({sessionId:'a9a834',hypothesisId:'C/E',location:'editor/index.svelte:applyBridgeSelection',message:'dispatched highlight',data:{matchKind:sel.matchKind,stored:{from:sel.fromLine,to:sel.toLine},recomputed,used:range,bg,docLines:doc.lines,textLen:text.length},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
+    logDebugTrace("editor/index.svelte:applyBridgeSelection", "dispatched highlight", {
+      matchKind: sel.matchKind,
+      stored: { from: sel.fromLine, to: sel.toLine },
+      recomputed,
+      used: range,
+      bg,
+      docLines: doc.lines,
+      textLen: text.length,
+    });
   }
 
   function syncDocAndBridge() {

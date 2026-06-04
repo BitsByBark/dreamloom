@@ -1,7 +1,12 @@
 import { centerTabs } from "$lib/center-tabs.svelte";
-import { currentBridgeDlClass, editorBridge } from "$lib/bridge-selection.svelte";
+import {
+  currentBridgeDlClass,
+  editorBridge,
+  materializePendingDlClass,
+} from "$lib/bridge-selection.svelte";
 import { resolveDlClassSource } from "$lib/resolve-component-source";
 import { propertiesPseudo } from "$properties/properties-pseudo.svelte";
+import { appendUndo } from "$git/undoStore";
 import { buildDelta, type StyleDelta } from "./delta";
 import { injectSvelteStyle } from "./strategies/svelte";
 
@@ -50,6 +55,16 @@ async function resolveInjectFilePath(dlClass: string): Promise<string | null> {
 }
 
 export async function commitPropertyChange(property: string, value: string): Promise<void> {
+  // A bare element carries a generated dl-* class that isn't in source yet.
+  // Inject it before the first style write; abort the edit if injection fails.
+  if (editorBridge.selection?.matchKind === "element") {
+    const ok = await materializePendingDlClass();
+    if (!ok) {
+      console.warn("[injector] skip: dl-class injection failed");
+      return;
+    }
+  }
+
   const dlClass = currentBridgeDlClass();
   if (!dlClass) {
     console.log("[injector] skip: no dl class selected");
@@ -64,6 +79,10 @@ export async function commitPropertyChange(property: string, value: string): Pro
 
   const delta = buildDelta(dlClass, propertiesPseudo.active, property, value);
   await injectStyle(filePath, delta);
+
+  const fileName = filePath.split(/[/\\]/).pop() ?? filePath;
+  const state = propertiesPseudo.active === "default" ? "" : `:${propertiesPseudo.active}`;
+  appendUndo(`${fileName}: .${dlClass.replace(/^\./, "")}${state} { ${property}: ${value || "(cleared)"} }`);
 }
 
 /** Fire-and-forget inject when a control has a bound CSS property name. */

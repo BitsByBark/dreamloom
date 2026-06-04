@@ -1,6 +1,8 @@
 mod app;
 mod assets;
 mod auth;
+mod git;
+mod injector;
 mod live_preview;
 mod misc;
 mod welcomemodal;

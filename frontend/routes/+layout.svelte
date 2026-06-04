@@ -3,6 +3,7 @@
   import "../app.css";
   import { initSessionLogFile } from "$debug/log-file";
   import { appState } from "$lib/app-state.svelte";
+  import GitModal from "$git/GitModal.svelte";
   import GitHubDeviceModal from "$misc/GitHubDeviceModal.svelte";
   import WelcomeModal from "$misc/WelcomeModal.svelte";
   import { hydrateAuth } from "$auth/authStore.svelte";
@@ -35,5 +36,6 @@
 {/if}
 
 <GitHubDeviceModal />
+<GitModal />
 
 {@render children()}

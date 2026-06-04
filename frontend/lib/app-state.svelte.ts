@@ -1,4 +1,4 @@
-export type LeftTab = "repo" | "assets" | "tree" | "git" | "log";
+export type LeftTab = "repo" | "assets" | "tree" | "primitives" | "log";
 
 export type RightTab = "editor" | "properties" | "cssVars";
 

@@ -2,10 +2,11 @@ export const STATE_SELECTOR_COLLAPSED_KEY = "dreamloom-properties-state-collapse
 
 /** Minimal bridge selection shape for identity / reset (avoids importing bridge at load). */
 export type PseudoSelectionIdentity = {
-  matchKind: "dl" | "id";
+  matchKind: "dl" | "id" | "element";
   dlClass?: string;
   occurrenceIndex?: number;
   id?: string;
+  pendingDlClass?: string;
   fromLine: number;
   toLine: number;
 };
@@ -48,6 +49,10 @@ export function selectionIdentity(sel: PseudoSelectionIdentity | null): string |
 
   if (sel.matchKind === "dl") {
     return `dl:${sel.dlClass ?? ""}:${sel.occurrenceIndex ?? 0}:${sel.fromLine}:${sel.toLine}`;
+  }
+
+  if (sel.matchKind === "element") {
+    return `element:${sel.pendingDlClass ?? ""}:${sel.fromLine}:${sel.toLine}`;
   }
 
   return `id:${sel.id}:${sel.fromLine}:${sel.toLine}`;

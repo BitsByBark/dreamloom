@@ -1,6 +1,7 @@
 <script lang="ts">
   import { appState } from "$lib/app-state.svelte";
   import { authStore, refreshRepoMetrics } from "$auth/authStore.svelte";
+  import { openGitModal } from "$git/gitStore.svelte";
   import { settings } from "$settings/settings.svelte";
 
   const MAX_DIFF_BLOCKS = 8;
@@ -36,6 +37,8 @@
   const showFilesMetrics = $derived(hasProject && settings.topbarShowFilesChanged);
   const showBranch = $derived(hasProject && settings.topbarShowBranch);
 
+  const canOpenGit = $derived(Boolean(appState.openDirectory));
+
   const showTopbar = $derived(
     settings.topbarShowAvatar ||
       settings.topbarShowUsername ||
@@ -55,37 +58,47 @@
 {#if authStore.status === "authenticated" && authStore.user && showTopbar}
   <div class="topbar-user">
     <div class="topbar-user-info">
-      {#if showFilesMetrics}
-        <span class="topbar-user-metric" title="Files changed since last commit">
-          {filesChangedLabel} files
-        </span>
-      {/if}
-      {#if showDiffMetrics}
-        <span
-          class="topbar-diff"
-          title="Diff since last commit: +{linesAdded} / {linesRemoved} removed"
-          aria-label="Diff display: {linesAdded} lines added, {linesRemoved} lines removed"
+      {#if showFilesMetrics || showDiffMetrics || showBranch}
+        <button
+          type="button"
+          class="topbar-git-metrics"
+          title="Open git panel"
+          disabled={!canOpenGit}
+          onclick={() => openGitModal()}
         >
-          <span class="topbar-diff-side topbar-diff-added-side">
-            <span class="topbar-diff-added">+{linesAdded}</span>
-            {#if diffBlocks.added}
-              <span class="topbar-diff-blocks topbar-diff-blocks-added" aria-hidden="true"
-                >{diffBlocks.added}</span
-              >
-            {/if}
-          </span>
-          <span class="topbar-diff-side topbar-diff-removed-side">
-            {#if diffBlocks.removed}
-              <span class="topbar-diff-blocks topbar-diff-blocks-removed" aria-hidden="true"
-                >{diffBlocks.removed}</span
-              >
-            {/if}
-            <span class="topbar-diff-removed">{linesRemoved}-</span>
-          </span>
-        </span>
-      {/if}
-      {#if showBranch}
-        <span class="topbar-user-metric" title="Current branch">{branchLabel}</span>
+          {#if showFilesMetrics}
+            <span class="topbar-user-metric" title="Files changed since last commit">
+              {filesChangedLabel} files
+            </span>
+          {/if}
+          {#if showDiffMetrics}
+            <span
+              class="topbar-diff"
+              title="Diff since last commit: +{linesAdded} / {linesRemoved} removed"
+              aria-label="Diff display: {linesAdded} lines added, {linesRemoved} lines removed"
+            >
+              <span class="topbar-diff-side topbar-diff-added-side">
+                <span class="topbar-diff-added">+{linesAdded}</span>
+                {#if diffBlocks.added}
+                  <span class="topbar-diff-blocks topbar-diff-blocks-added" aria-hidden="true"
+                    >{diffBlocks.added}</span
+                  >
+                {/if}
+              </span>
+              <span class="topbar-diff-side topbar-diff-removed-side">
+                {#if diffBlocks.removed}
+                  <span class="topbar-diff-blocks topbar-diff-blocks-removed" aria-hidden="true"
+                    >{diffBlocks.removed}</span
+                  >
+                {/if}
+                <span class="topbar-diff-removed">{linesRemoved}-</span>
+              </span>
+            </span>
+          {/if}
+          {#if showBranch}
+            <span class="topbar-user-metric" title="Current branch">{branchLabel}</span>
+          {/if}
+        </button>
       {/if}
       {#if settings.topbarShowUsername}
         <span class="topbar-user-name">{authStore.user.login}</span>
@@ -135,6 +148,27 @@
     color: var(--text);
     font-weight: 600;
     flex-shrink: 0;
+  }
+
+  .topbar-git-metrics {
+    display: inline-flex;
+    align-items: center;
+    gap: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    color: inherit;
+  }
+
+  .topbar-git-metrics:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  .topbar-git-metrics:disabled {
+    cursor: default;
+    opacity: 0.5;
   }
 
   .topbar-user-metric {

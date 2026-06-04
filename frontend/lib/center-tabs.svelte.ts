@@ -1,5 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
 import { basename } from "@tauri-apps/api/path";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import {
   logTabClosed,
   logTabEvicted,
@@ -87,7 +87,7 @@ export function rescheduleAllEvictions() {
 }
 
 async function loadTabContent(tab: CenterTab): Promise<void> {
-  tab.content = await readTextFile(tab.path);
+  tab.content = await invoke<string>("read_text_file", { path: tab.path });
   tab.evicted = false;
 
   if (centerTabs.activePath === tab.path) {

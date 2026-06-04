@@ -12,6 +12,8 @@ export type PreviewDomTreeNode = {
   tagName: string;
   id?: string;
   dlClass?: string;
+  /** Authored class tokens (svelte-* scope hashes and dl-* removed). */
+  classes?: string[];
   children: PreviewDomTreeNode[];
 };
 
@@ -36,6 +38,17 @@ export type DreamloomPreviewSelectByIdMessage = {
 
 export type DreamloomPreviewChainUpdateMessage = {
   type: "dreamloom:chainUpdate";
+  tree: PreviewDomTreeNode;
+  selectedPath: number[];
+};
+
+/** A bare element (no dl-*, no id) was selected — eligible for dl-* injection. */
+export type DreamloomPreviewSelectElementMessage = {
+  type: "dreamloom:selectElement";
+  tagName: string;
+  classes: string[];
+  occurrence: number;
+  rect: PreviewRect;
   tree: PreviewDomTreeNode;
   selectedPath: number[];
 };
@@ -68,6 +81,7 @@ export type DreamloomPreviewMessage =
   | DreamloomPreviewSelectMessage
   | DreamloomPreviewSelectByIdMessage
   | DreamloomPreviewChainUpdateMessage
+  | DreamloomPreviewSelectElementMessage
   | DreamloomPreviewPickMessage
   | DreamloomPreviewHighlightDlMessage;
 
@@ -77,6 +91,8 @@ export const PREVIEW_BRIDGE_PREFIX = "/__dreamloom_preview__";
 export function previewBridgeScript(): string {
   return `(()=>{
 var accent="#AACC00";
+var OUTLINE_WIDTH=4;
+var OUTLINE_OFFSET=6;
 var outlined=null;
 var lastTreeRoot=null;
 var nodeCount=0;
@@ -99,11 +115,35 @@ function findDlClass(el){
   }
   return null;
 }
+function authoredClasses(el){
+  var out=[];
+  if(!el||!el.classList)return out;
+  for(var i=0;i<el.classList.length;i++){
+    var c=el.classList[i];
+    if(/^svelte-/.test(c)||/^dl-/.test(c))continue;
+    out.push(c);
+  }
+  return out;
+}
+function authoredKey(el){
+  return authoredClasses(el).slice().sort().join(" ");
+}
+function signatureOccurrence(el){
+  var all=document.getElementsByTagName(el.tagName);
+  var key=authoredKey(el);
+  var idx=0;
+  for(var i=0;i<all.length;i++){
+    if(all[i]===el)return idx;
+    if(authoredKey(all[i])===key)idx++;
+  }
+  return idx;
+}
 function nodeInfo(el){
   var info={tagName:el.tagName.toLowerCase(),children:[]};
   if(el.id)info.id=el.id;
   var dl=firstDlClass(el);
   if(dl)info.dlClass=dl;
+  info.classes=authoredClasses(el);
   return info;
 }
 function buildDomTree(el,depth){
@@ -148,12 +188,20 @@ function rectOf(el){
   var r=el.getBoundingClientRect();
   return{x:r.x,y:r.y,width:r.width,height:r.height,top:r.top,left:r.left,right:r.right,bottom:r.bottom};
 }
+function outlineCss(){
+  return OUTLINE_WIDTH+"px solid "+accent;
+}
 function clearOutline(){
-  if(outlined){outlined.style.outline="";outlined=null;}
+  if(outlined){
+    outlined.style.outline="";
+    outlined.style.outlineOffset="";
+    outlined=null;
+  }
 }
 function applyOutline(el){
   clearOutline();
-  el.style.outline="2px solid "+accent;
+  el.style.outline=outlineCss();
+  el.style.outlineOffset=OUTLINE_OFFSET+"px";
   outlined=el;
 }
 function occurrenceIndex(el,dlClass){
@@ -182,9 +230,13 @@ function postSelectById(el,tree,selectedPath){
     selectedPath:selectedPath
   },"*");
 }
-function postChainUpdate(tree,selectedPath){
+function postSelectElement(el,tree,selectedPath){
   parent.postMessage({
-    type:"dreamloom:chainUpdate",
+    type:"dreamloom:selectElement",
+    tagName:el.tagName.toLowerCase(),
+    classes:authoredClasses(el),
+    occurrence:signatureOccurrence(el),
+    rect:rectOf(el),
     tree:tree,
     selectedPath:selectedPath
   },"*");
@@ -203,14 +255,17 @@ function pickAt(path){
     postSelectById(el,tree,path);
     return;
   }
-  postChainUpdate(tree,path);
+  postSelectElement(el,tree,path);
 }
 window.addEventListener("message",function(e){
   var d=e.data;
   if(!d||!d.type)return;
   if(d.type==="dreamloom:config"&&d.accentColor){
     accent=d.accentColor;
-    if(outlined)outlined.style.outline="2px solid "+accent;
+    if(outlined){
+      outlined.style.outline=outlineCss();
+      outlined.style.outlineOffset=OUTLINE_OFFSET+"px";
+    }
     return;
   }
   if(d.type==="dreamloom:pick"&&Array.isArray(d.path)){
@@ -224,21 +279,41 @@ window.addEventListener("message",function(e){
   }
 });
 document.addEventListener("click",function(e){
-  var hit=findDlClass(e.target);
-  if(!hit){
+  nodeCount=0;
+  var built=document.body?buildDomTree(document.body,0):null;
+  if(!built){
     clearOutline();
     lastTreeRoot=null;
     parent.postMessage({type:"dreamloom:clear"},"*");
     return;
   }
-  e.stopPropagation();
-  nodeCount=0;
-  var built=document.body?buildDomTree(document.body,0):null;
-  if(!built)return;
   lastTreeRoot=built;
-  var selectedPath=findPath(built,hit.el,[])||[];
-  applyOutline(hit.el);
-  postSelect(hit.el,hit.dlClass,built.node,selectedPath);
+
+  // An element inside an existing dl-* element still selects that dl element.
+  var hit=findDlClass(e.target);
+  if(hit){
+    e.stopPropagation();
+    var dlPath=findPath(built,hit.el,[])||[];
+    applyOutline(hit.el);
+    postSelect(hit.el,hit.dlClass,built.node,dlPath);
+    return;
+  }
+
+  // No dl-* ancestor: select the exact clicked element (bare or id).
+  var target=e.target;
+  if(!target||!target.tagName||target===document.documentElement||target===document.body){
+    clearOutline();
+    parent.postMessage({type:"dreamloom:clear"},"*");
+    return;
+  }
+  e.stopPropagation();
+  var path=findPath(built,target,[])||[];
+  applyOutline(target);
+  if(target.id){
+    postSelectById(target,built.node,path);
+  }else{
+    postSelectElement(target,built.node,path);
+  }
 },true);
 })();`;
 }
