@@ -134,3 +134,60 @@ export function findElementLineRange(
   // never found the close — at least cover down to the class line
   return { from: openLine, to: Math.max(openLine, startLine) };
 }
+
+function idMatch(line: string, id: string): boolean {
+  const escaped = escapeRegExp(id);
+  const patterns = [
+    new RegExp(`\\bid\\s*=\\s*["']${escaped}["']`),
+    new RegExp(`\\bid\\s*=\\s*\\{['"\`]${escaped}['"\`]\\}`),
+    new RegExp(`\\bid\\s*=\\s*\\{\`${escaped}\`\\}`),
+  ];
+  return patterns.some((pattern) => pattern.test(line));
+}
+
+/** Line where id= appears on a markup line, or null. */
+export function findIdLineIndex(source: string, id: string): number | null {
+  const lines = source.split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    if (idMatch(lines[i], id) && lineLooksLikeMarkup(lines[i])) {
+      return i;
+    }
+  }
+
+  return null;
+}
+
+/** Line range (0-based inclusive) for the element block with this id. */
+export function findIdLineRange(source: string, id: string): { from: number; to: number } | null {
+  const startLine = findIdLineIndex(source, id);
+  if (startLine === null) {
+    return null;
+  }
+
+  const lines = source.split("\n");
+  const opening = findOpeningTag(lines, startLine);
+  if (!opening) {
+    return { from: startLine, to: startLine };
+  }
+
+  const openLine = opening.line;
+
+  if (opening.selfClosing) {
+    return { from: openLine, to: Math.max(openLine, startLine) };
+  }
+
+  const tag = opening.tag;
+  let depth = 1;
+  const end = Math.min(lines.length - 1, openLine + MAX_BLOCK_LINES);
+
+  for (let i = openLine + 1; i <= end; i++) {
+    const { opens, closes } = countTagEvents(lines[i], tag);
+    depth += opens - closes;
+    if (depth <= 0) {
+      return { from: openLine, to: i };
+    }
+  }
+
+  return { from: openLine, to: Math.max(openLine, startLine) };
+}

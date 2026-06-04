@@ -95,7 +95,14 @@ async function loadTabContent(tab: CenterTab): Promise<void> {
   }
 }
 
-export async function focusCenterTab(path: string): Promise<void> {
+export type FocusCenterTabOptions = {
+  preserveBridge?: boolean;
+};
+
+export async function focusCenterTab(
+  path: string,
+  options?: FocusCenterTabOptions,
+): Promise<void> {
   const previous = centerTabs.activePath;
 
   if (previous && previous !== path) {
@@ -103,7 +110,7 @@ export async function focusCenterTab(path: string): Promise<void> {
   }
 
   clearEvictionTimer(path);
-  if (previous !== path) {
+  if (previous !== path && !options?.preserveBridge) {
     clearEditorBridgeSelection();
   }
   centerTabs.activePath = path;
@@ -123,10 +130,13 @@ export async function focusCenterTab(path: string): Promise<void> {
   logTabFocused(tab.filename);
 }
 
-export async function openCenterTab(path: string): Promise<void> {
+export async function openCenterTab(
+  path: string,
+  options?: FocusCenterTabOptions,
+): Promise<void> {
   const existing = centerTabs.tabs.find((entry) => entry.path === path);
   if (existing) {
-    await focusCenterTab(path);
+    await focusCenterTab(path, options);
     return;
   }
 
@@ -141,7 +151,7 @@ export async function openCenterTab(path: string): Promise<void> {
   await loadTabContent(tab);
   centerTabs.tabs = [...centerTabs.tabs, tab];
   logTabOpened(filename);
-  await focusCenterTab(path);
+  await focusCenterTab(path, options);
 }
 
 export function selectCenterTab(path: string) {

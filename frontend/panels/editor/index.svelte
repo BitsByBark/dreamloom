@@ -7,7 +7,7 @@
   import { appState } from "$lib/app-state.svelte";
   import { editorBridge } from "$lib/bridge-selection.svelte";
   import { centerTabs } from "$lib/center-tabs.svelte";
-  import { findElementLineRange } from "$lib/find-element-lines";
+  import { findElementLineRange, findIdLineRange } from "$lib/find-element-lines";
   import { amoledTheme } from "$lib/codemirror/amoled-theme";
   import {
     accentHighlightBackground,
@@ -52,7 +52,10 @@
     // recompute from the live buffer — stored lines can be stale (computed while doc was still empty).
     // if recompute fails (class not in current buffer text yet), fall back to stored lines, never clear.
     const text = view.state.doc.toString();
-    const recomputed = findElementLineRange(text, sel.dlClass, sel.occurrenceIndex);
+    const recomputed =
+      sel.matchKind === "id"
+        ? findIdLineRange(text, sel.id)
+        : findElementLineRange(text, sel.dlClass, sel.occurrenceIndex);
     const range = recomputed ?? { from: sel.fromLine, to: sel.toLine };
 
     const bg = accentHighlightBackground(settings.accentColor);
@@ -70,7 +73,7 @@
       scrollIntoView: true,
     });
     // #region agent log
-    fetch('http://127.0.0.1:7790/ingest/b88598fb-327a-4542-ba31-cc39203b33a7',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a9a834'},body:JSON.stringify({sessionId:'a9a834',hypothesisId:'C/E',location:'editor/index.svelte:applyBridgeSelection',message:'dispatched highlight',data:{dlClass:sel.dlClass,occurrence:sel.occurrenceIndex,stored:{from:sel.fromLine,to:sel.toLine},recomputed,used:range,bg,docLines:doc.lines,textLen:text.length},timestamp:Date.now()})}).catch(()=>{});
+    fetch('http://127.0.0.1:7790/ingest/b88598fb-327a-4542-ba31-cc39203b33a7',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a9a834'},body:JSON.stringify({sessionId:'a9a834',hypothesisId:'C/E',location:'editor/index.svelte:applyBridgeSelection',message:'dispatched highlight',data:{matchKind:sel.matchKind,stored:{from:sel.fromLine,to:sel.toLine},recomputed,used:range,bg,docLines:doc.lines,textLen:text.length},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
   }
 

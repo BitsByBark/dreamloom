@@ -60,7 +60,7 @@
     }
 
     if (data.type === "dreamloom:select" && data.dlClass) {
-      handlePreviewSelect(data);
+      void handlePreviewSelect(data);
     }
   }
 

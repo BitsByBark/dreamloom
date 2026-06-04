@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Menubar from "$misc/Menubar.svelte";
   import LeftTabs from "$misc/LeftTabs.svelte";
   import Center from "$panels/center/index.svelte";
   import RightTabs from "$misc/RightTabs.svelte";
   import { logPanelToggled } from "$debug/logging.svelte";
   import { layout } from "$lib/layout.svelte";
+  import { mountPreviewMessageListener } from "$lib/preview-listener";
   import {
     saveLayout,
     RAIL_WIDTH,
@@ -14,6 +16,8 @@
   $effect(() => {
     saveLayout(layout);
   });
+
+  onMount(() => mountPreviewMessageListener());
 
   type ResizeSide = "left" | "right";
 

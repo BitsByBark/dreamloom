@@ -6,6 +6,7 @@
   import Git from "$panels/git/index.svelte";
   import Log from "$panels/log/index.svelte";
   import Repo from "$panels/repo/index.svelte";
+  import Tree from "$panels/tree/index.svelte";
 
   type Props = {
     onCollapse: () => void;
@@ -16,6 +17,7 @@
   const tabs = $derived.by(() => {
     const items: { id: LeftTab; label: string }[] = [
       { id: "repo", label: "Repo" },
+      { id: "tree", label: "Component Tree" },
       { id: "git", label: "Git" },
     ];
 
@@ -71,6 +73,8 @@
     <div class="tab-content" class:text-zoom={appState.leftTab !== "log"}>
       {#if appState.leftTab === "repo"}
         <Repo />
+      {:else if appState.leftTab === "tree"}
+        <Tree />
       {:else if appState.leftTab === "git"}
         <Git />
       {:else}
