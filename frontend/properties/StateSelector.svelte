@@ -1,7 +1,7 @@
 <script lang="ts">
   import "./properties-theme.css";
   import { currentBridgeDlClass, editorBridge } from "$lib/bridge-selection.svelte";
-  import { settings } from "$settings/settings.svelte";
+  import { ACCENT_COLOR } from "$settings/storage";
   import { PROPERTY_PSEUDO_OPTIONS, selectionIdentity } from "./property-pseudo-state";
   import {
     propertiesPseudo,
@@ -49,7 +49,7 @@
         type="button"
         class="state-selector-btn state-selector-btn-default"
         class:active={propertiesPseudo.active === defaultOption.id}
-        style:--state-accent={settings.accentColor}
+        style:--state-accent={ACCENT_COLOR}
         disabled={!hasSelection}
         aria-pressed={propertiesPseudo.active === defaultOption.id}
         onclick={() => setPropertyPseudoState(defaultOption.id)}
@@ -63,7 +63,7 @@
             type="button"
             class="state-selector-btn"
             class:active={propertiesPseudo.active === option.id}
-            style:--state-accent={settings.accentColor}
+            style:--state-accent={ACCENT_COLOR}
             disabled={!hasSelection}
             aria-pressed={propertiesPseudo.active === option.id}
             onclick={() => setPropertyPseudoState(option.id)}

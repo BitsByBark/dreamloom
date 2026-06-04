@@ -15,7 +15,7 @@
     elementHighlightExtension,
     setElementHighlight,
   } from "$lib/codemirror/element-highlight";
-  import { settings } from "$settings/settings.svelte";
+  import { ACCENT_COLOR } from "$settings/storage";
 
   let container: HTMLDivElement | undefined = $state();
   let view: EditorView | undefined;
@@ -58,7 +58,7 @@
         : findElementLineRange(text, sel.dlClass, sel.occurrenceIndex);
     const range = recomputed ?? { from: sel.fromLine, to: sel.toLine };
 
-    const bg = accentHighlightBackground(settings.accentColor);
+    const bg = accentHighlightBackground(ACCENT_COLOR);
     const doc = view.state.doc;
     const line = Math.min(range.from + 1, doc.lines);
     const lineObj = doc.line(line);
@@ -130,7 +130,6 @@
 
     editorBridge.selection?.generation;
     editorBridge.selection;
-    settings.accentColor;
 
     queueMicrotask(() => applyBridgeSelection());
   });

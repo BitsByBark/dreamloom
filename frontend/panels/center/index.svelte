@@ -4,7 +4,7 @@
   import { centerTabs, closeCenterTab, selectCenterTab } from "$lib/center-tabs.svelte";
   import { handlePreviewClear, handlePreviewSelect } from "$lib/bridge-selection.svelte";
   import { previewPageUrl } from "$lib/preview-url";
-  import { settings } from "$settings/settings.svelte";
+  import { ACCENT_COLOR } from "$settings/storage";
   import type { DreamloomPreviewMessage } from "./preview-bridge";
   import { filePathToRoute } from "./routes";
 
@@ -35,7 +35,7 @@
     }
 
     win.postMessage(
-      { type: "dreamloom:config", accentColor: settings.accentColor } satisfies DreamloomPreviewMessage,
+      { type: "dreamloom:config", accentColor: ACCENT_COLOR } satisfies DreamloomPreviewMessage,
       "*",
     );
   }
@@ -63,11 +63,6 @@
       void handlePreviewSelect(data);
     }
   }
-
-  $effect(() => {
-    settings.accentColor;
-    postAccentConfig();
-  });
 
   onMount(() => {
     window.addEventListener("message", onPreviewMessage);
