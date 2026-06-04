@@ -1,10 +1,11 @@
 <script lang="ts">
   import "./tab-rail.css";
   import { logRightTab } from "$debug/logging.svelte";
+  import { clearEditorBridgeSelection } from "$lib/bridge-selection.svelte";
   import { appState, type RightTab } from "$lib/app-state.svelte";
-  import Editor from "$panels/Editor.svelte";
-  import Properties from "$panels/Properties.svelte";
-  import CssVars from "$panels/CssVars.svelte";
+  import Editor from "$panels/editor/index.svelte";
+  import Properties from "$panels/properties/index.svelte";
+  import CssVars from "$panels/css-vars/index.svelte";
 
   type Props = {
     onCollapse: () => void;
@@ -21,6 +22,11 @@
   function selectTab(tab: RightTab) {
     if (appState.rightTab === tab) {
       return;
+    }
+
+    // editor and properties are mutually exclusive — picking one clears the other’s bridge state
+    if (tab === "properties") {
+      clearEditorBridgeSelection();
     }
 
     appState.rightTab = tab;

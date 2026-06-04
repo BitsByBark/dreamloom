@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { TreeNode } from "$lib/file-tree";
   import { openSvelteFile } from "$lib/open-file";
-  import FileTreeNode from "$panels/FileTreeNode.svelte";
+  import FileTreeNode from "./FileTreeNode.svelte";
 
   type Props = {
     node: TreeNode;

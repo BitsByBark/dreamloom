@@ -1,12 +1,16 @@
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { dreamloomPreviewProxy } from "./frontend/vite-plugins/dreamloom-preview-proxy";
 
-// @ts-expect-error process is a nodejs global
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
 const host = process.env.TAURI_DEV_HOST;
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [sveltekit()],
+  plugins: [dreamloomPreviewProxy(), sveltekit()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -27,6 +31,9 @@ export default defineConfig(async () => ({
     watch: {
       // 3. tell Vite to ignore watching `backend`
       ignored: ["**/backend/**", "**/.svelte-kit/**"],
+    },
+    fs: {
+      allow: [projectRoot],
     },
   },
 }));

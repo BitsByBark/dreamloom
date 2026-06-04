@@ -6,6 +6,7 @@ import {
   logTabFocused,
   logTabOpened,
 } from "$debug/logging.svelte";
+import { clearEditorBridgeSelection } from "$lib/bridge-selection.svelte";
 import { appState } from "$lib/app-state.svelte";
 import { settings } from "$settings/settings.svelte";
 
@@ -102,6 +103,9 @@ export async function focusCenterTab(path: string): Promise<void> {
   }
 
   clearEvictionTimer(path);
+  if (previous !== path) {
+    clearEditorBridgeSelection();
+  }
   centerTabs.activePath = path;
   appState.rightTab = "editor";
 

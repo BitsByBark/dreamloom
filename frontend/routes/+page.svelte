@@ -1,7 +1,7 @@
 <script lang="ts">
   import Menubar from "$misc/Menubar.svelte";
   import LeftTabs from "$misc/LeftTabs.svelte";
-  import Center from "$panels/Center.svelte";
+  import Center from "$panels/center/index.svelte";
   import RightTabs from "$misc/RightTabs.svelte";
   import { logPanelToggled } from "$debug/logging.svelte";
   import { layout } from "$lib/layout.svelte";
