@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { basicSetup } from "codemirror";
   import { html } from "@codemirror/lang-html";
   import { EditorState } from "@codemirror/state";
@@ -18,8 +19,7 @@
   } from "$lib/codemirror/element-highlight";
   import { ACCENT_COLOR } from "$settings/storage";
 
-  let container: HTMLDivElement | undefined = $state();
-  let view: EditorView | undefined;
+  let view = $state<EditorView | undefined>();
 
   function syncEditorDoc() {
     if (!view) {
@@ -94,13 +94,10 @@
     applyBridgeSelection();
   }
 
-  $effect(() => {
-    if (!container) {
-      return;
-    }
-
+  /** Mount CodeMirror once per host — avoids $effect + bind:this recreate loops. */
+  function editorHost(node: HTMLDivElement) {
     const editorView = new EditorView({
-      parent: container,
+      parent: node,
       state: EditorState.create({
         doc: "",
         extensions: [
@@ -115,35 +112,31 @@
     });
 
     view = editorView;
-    queueMicrotask(() => syncDocAndBridge());
+    queueMicrotask(() => untrack(() => syncDocAndBridge()));
 
-    return () => {
-      editorView.destroy();
-      view = undefined;
+    return {
+      destroy() {
+        editorView.destroy();
+        view = undefined;
+      },
     };
-  });
+  }
 
+  // Defer CM writes; untrack inner reads so sync does not widen effect dependencies.
   $effect(() => {
-    if (!container) {
+    if (!view) {
       return;
     }
 
     appState.openFilePath;
     appState.openFileContent;
     centerTabs.activePath;
-
-    syncDocAndBridge();
-  });
-
-  $effect(() => {
-    if (!container) {
-      return;
-    }
-
     editorBridge.selection?.generation;
     editorBridge.selection;
 
-    queueMicrotask(() => applyBridgeSelection());
+    queueMicrotask(() => {
+      untrack(() => syncDocAndBridge());
+    });
   });
 </script>
 
@@ -151,7 +144,7 @@
   {#if !appState.openFilePath}
     <p class="hint">Click a .svelte file in the file tree</p>
   {/if}
-  <div class="codemirror-host" bind:this={container}></div>
+  <div class="codemirror-host" use:editorHost></div>
 </div>
 
 <style>
