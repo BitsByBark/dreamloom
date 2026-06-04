@@ -85,9 +85,31 @@ export function elementHighlightExtension(): Extension {
   return elementHighlightField;
 }
 
+function highlightEqual(
+  a: ElementHighlightRange,
+  b: ElementHighlightRange,
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a === null || b === null) {
+    return false;
+  }
+  return (
+    a.fromLine === b.fromLine &&
+    a.toLine === b.toLine &&
+    a.backgroundColor === b.backgroundColor
+  );
+}
+
 export function applyElementHighlight(view: EditorView, range: ElementHighlightRange): void {
+  if (highlightEqual(range, lastHighlight)) {
+    return;
+  }
+
   if (range === null) {
     lastHighlight = null;
   }
+
   view.dispatch({ effects: setElementHighlight.of(range) });
 }
