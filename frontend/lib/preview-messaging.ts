@@ -1,10 +1,15 @@
-import type { DreamloomPreviewPickMessage } from "$panels/center/preview-bridge";
+import type {
+  DreamloomPreviewHighlightDlMessage,
+  DreamloomPreviewPickMessage,
+} from "$panels/center/preview-bridge";
+
+export type PreviewOutboundMessage = DreamloomPreviewPickMessage | DreamloomPreviewHighlightDlMessage;
 
 export function getPreviewFrame(): HTMLIFrameElement | null {
   return document.querySelector("iframe.preview-frame");
 }
 
-export function postToPreview(message: DreamloomPreviewPickMessage): void {
+export function postToPreview(message: PreviewOutboundMessage): void {
   const win = getPreviewFrame()?.contentWindow;
   if (!win) {
     return;

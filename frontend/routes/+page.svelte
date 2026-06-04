@@ -98,7 +98,7 @@
         <span class="rail-icon" aria-hidden="true">☰</span>
       </button>
     {:else}
-      <LeftTabs onCollapse={toggleLeft} />
+      <LeftTabs />
     {/if}
   </aside>
 
@@ -141,7 +141,7 @@
         <span class="rail-icon" aria-hidden="true">☰</span>
       </button>
     {:else}
-      <RightTabs onCollapse={toggleRight} />
+      <RightTabs />
     {/if}
   </aside>
   </div>

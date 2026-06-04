@@ -1,8 +1,10 @@
 import { appState } from "$lib/app-state.svelte";
 import {
   clearComponentTree,
+  componentTree,
   nearestDlAlongPath,
   nearestIdAlongPath,
+  nodeAtPath,
   setComponentTree,
 } from "$lib/component-tree.svelte";
 import { centerTabs, focusCenterTab, openCenterTab } from "$lib/center-tabs.svelte";
@@ -67,11 +69,21 @@ async function ensureTabForBridge(path: string): Promise<void> {
   await openCenterTab(path, options);
 }
 
+type ApplyBridgeOptions = {
+  focusEditor?: boolean;
+  highlightPreview?: boolean;
+};
+
 async function applyResolvedSource(
   resolved: ResolvedComponentSource,
   selection: EditorBridgeSelection,
+  options: ApplyBridgeOptions = {},
 ): Promise<void> {
-  appState.rightTab = "editor";
+  const { focusEditor = true, highlightPreview = false } = options;
+
+  if (focusEditor) {
+    appState.rightTab = "editor";
+  }
 
   if (centerTabs.activePath !== resolved.path) {
     await ensureTabForBridge(resolved.path);
@@ -83,6 +95,67 @@ async function applyResolvedSource(
     toLine: resolved.range.to,
     generation: bumpGeneration(),
   };
+
+  if (highlightPreview && selection.matchKind === "dl") {
+    postToPreview({
+      type: "dreamloom:highlightDl",
+      dlClass: selection.dlClass,
+      occurrenceIndex: selection.occurrenceIndex,
+    });
+  }
+}
+
+/** dl-* for the current bridge selection (editor or tree leaf). */
+export function currentBridgeDlClass(): string | null {
+  const sel = editorBridge.selection;
+  if (sel?.matchKind === "dl") {
+    return sel.dlClass;
+  }
+
+  if (componentTree.tree) {
+    const node = nodeAtPath(componentTree.tree, componentTree.selectedPath);
+    if (node?.dlClass) {
+      return node.dlClass;
+    }
+    const ancestor = nearestDlAlongPath(componentTree.tree, componentTree.selectedPath);
+    if (ancestor) {
+      return ancestor.dlClass;
+    }
+  }
+
+  return null;
+}
+
+export async function bridgeSelectDlClass(
+  dlClass: string,
+  occurrence = 0,
+  options: ApplyBridgeOptions = { focusEditor: false, highlightPreview: true },
+): Promise<void> {
+  const resolved = await resolveDlClassSource(dlClass, occurrence);
+  if (!resolved) {
+    return;
+  }
+
+  await applyResolvedSource(
+    resolved,
+    {
+      matchKind: "dl",
+      dlClass,
+      occurrenceIndex: occurrence,
+      fromLine: resolved.range.from,
+      toLine: resolved.range.to,
+      generation: 0,
+    },
+    options,
+  );
+}
+
+export function refreshBridgeEditorHighlight(): void {
+  const sel = editorBridge.selection;
+  if (!sel) {
+    return;
+  }
+  editorBridge.selection = { ...sel, generation: bumpGeneration() };
 }
 
 export async function handlePreviewSelect(message: DreamloomPreviewSelectMessage): Promise<void> {
