@@ -13,9 +13,8 @@ export const MIN_ZOOM = 0.5;
 export const MAX_ZOOM = 3.0;
 export const MIN_LOG_FONT_SIZE = 8;
 export const MAX_LOG_FONT_SIZE = 32;
-export const DEFAULT_ACCENT_COLOR = "#3B82F6";
-
-const HEX_COLOR_RE = /^#[0-9A-Fa-f]{6}$/;
+/** Fixed app accent — not user-configurable. */
+export const ACCENT_COLOR = "#E5FF3D";
 
 export type AppSettings = {
   inactiveEvictionDelay: number;
@@ -23,7 +22,6 @@ export type AppSettings = {
   uiZoom: number;
   textZoom: number;
   logFontSize: number;
-  accentColor: string;
 };
 
 export const defaultSettings: AppSettings = {
@@ -32,15 +30,7 @@ export const defaultSettings: AppSettings = {
   uiZoom: DEFAULT_UI_ZOOM,
   textZoom: DEFAULT_TEXT_ZOOM,
   logFontSize: DEFAULT_LOG_FONT_SIZE,
-  accentColor: DEFAULT_ACCENT_COLOR,
 };
-
-export function clampAccentColor(value: string | undefined): string {
-  if (value && HEX_COLOR_RE.test(value)) {
-    return value.toUpperCase();
-  }
-  return DEFAULT_ACCENT_COLOR;
-}
 
 export function clampZoom(value: number): number {
   const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
@@ -83,7 +73,6 @@ export function clampSettings(raw: Partial<AppSettings>): AppSettings {
     uiZoom: clampZoom(raw.uiZoom ?? DEFAULT_UI_ZOOM),
     textZoom: clampZoom(raw.textZoom ?? DEFAULT_TEXT_ZOOM),
     logFontSize: clampLogFontSize(raw.logFontSize ?? DEFAULT_LOG_FONT_SIZE),
-    accentColor: clampAccentColor(raw.accentColor),
   };
 }
 

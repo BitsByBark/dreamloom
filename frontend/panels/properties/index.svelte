@@ -5,6 +5,7 @@
   import SizeSection from "$properties/SizeSection.svelte";
   import SpacingSection from "$properties/SpacingSection.svelte";
   import StateSelector from "$properties/StateSelector.svelte";
+  import TypographySection from "$properties/TypographySection.svelte";
 </script>
 
 <div class="properties-panel">
@@ -14,6 +15,7 @@
   <LayoutSection />
   <SpacingSection />
   <SizeSection />
+  <TypographySection />
 </div>
 
 <style>
