@@ -14,7 +14,7 @@ export const MAX_ZOOM = 3.0;
 export const MIN_LOG_FONT_SIZE = 8;
 export const MAX_LOG_FONT_SIZE = 32;
 /** Fixed app accent — not user-configurable. */
-export const ACCENT_COLOR = "#E5FF3D";
+export const ACCENT_COLOR = "#AACC00";
 
 export type AppSettings = {
   inactiveEvictionDelay: number;
@@ -22,6 +22,11 @@ export type AppSettings = {
   uiZoom: number;
   textZoom: number;
   logFontSize: number;
+  topbarShowAvatar: boolean;
+  topbarShowUsername: boolean;
+  topbarShowDiff: boolean;
+  topbarShowFilesChanged: boolean;
+  topbarShowBranch: boolean;
 };
 
 export const defaultSettings: AppSettings = {
@@ -30,6 +35,11 @@ export const defaultSettings: AppSettings = {
   uiZoom: DEFAULT_UI_ZOOM,
   textZoom: DEFAULT_TEXT_ZOOM,
   logFontSize: DEFAULT_LOG_FONT_SIZE,
+  topbarShowAvatar: true,
+  topbarShowUsername: true,
+  topbarShowDiff: true,
+  topbarShowFilesChanged: true,
+  topbarShowBranch: true,
 };
 
 export function clampZoom(value: number): number {
@@ -73,6 +83,11 @@ export function clampSettings(raw: Partial<AppSettings>): AppSettings {
     uiZoom: clampZoom(raw.uiZoom ?? DEFAULT_UI_ZOOM),
     textZoom: clampZoom(raw.textZoom ?? DEFAULT_TEXT_ZOOM),
     logFontSize: clampLogFontSize(raw.logFontSize ?? DEFAULT_LOG_FONT_SIZE),
+    topbarShowAvatar: raw.topbarShowAvatar ?? true,
+    topbarShowUsername: raw.topbarShowUsername ?? true,
+    topbarShowDiff: raw.topbarShowDiff ?? true,
+    topbarShowFilesChanged: raw.topbarShowFilesChanged ?? true,
+    topbarShowBranch: raw.topbarShowBranch ?? true,
   };
 }
 

@@ -165,11 +165,77 @@
   color: var(--text-muted);
 }
 
-.prop-input,
-.prop-select {
+.prop-input {
   width: 100%;
   font: inherit;
   font-size: inherit;
+}
+
+/* native <select> — AMOLED trigger; option list uses color-scheme where OS allows */
+.prop-select-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.prop-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding-right: 1.85em;
+  font: inherit;
+  font-size: inherit;
+  color-scheme: dark;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  text-transform: lowercase;
+}
+
+.prop-select:hover:not(:disabled) {
+  background-color: #1c1c1c;
+  color: var(--prop-control-color-active, #a8a8a8);
+  border-color: #3a3a3a;
+}
+
+.prop-select:focus {
+  color: var(--prop-control-color-active, #a8a8a8);
+}
+
+.prop-select option,
+.prop-select optgroup {
+  background-color: #141414;
+  color: #c8c8c8;
+}
+
+.prop-select option:checked {
+  background-color: #222222;
+  color: #aacc00;
+}
+
+.prop-select option:hover {
+  background-color: #1c1c1c;
+}
+
+.prop-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 0.55em;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.7em;
+  line-height: 1;
+  color: #666666;
+}
+
+.prop-select-wrap:hover .prop-select-chevron,
+.prop-select-wrap:has(.prop-select:focus) .prop-select-chevron {
+  color: #888888;
+}
+
+.prop-select-wrap:has(.prop-select:disabled) .prop-select-chevron {
+  opacity: 0.45;
 }
 
 .prop-hint {
@@ -456,10 +522,461 @@
 }
 
 .state-selector-btn.active {
-  border-color: var(--state-accent, #3b82f6);
-  color: var(--state-accent, #3b82f6);
+  border-color: var(--state-accent, #aacc00);
+  color: var(--state-accent, #aacc00);
   background: #1a1a1a;
-  box-shadow: inset 0 0 0 1px var(--state-accent, #3b82f6);
+  box-shadow: inset 0 0 0 1px var(--state-accent, #aacc00);
+}
+
+.prop-toggle-group {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.prop-toggle-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--prop-control-min-height);
+  padding: 0.2em 0.35em;
+  border: 1px solid var(--panel-border);
+  background: #141414;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  border-radius: 0;
+}
+
+.prop-toggle-btn:hover:not(:disabled) {
+  background: #1c1c1c;
+  color: var(--text);
+}
+
+.prop-toggle-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.prop-toggle-btn.active {
+  border-color: var(--toggle-accent, #aacc00);
+  color: var(--toggle-accent, #aacc00);
+  background: #1a1a1a;
+  box-shadow: inset 0 0 0 1px var(--toggle-accent, #aacc00);
+}
+
+.prop-toggle-glyph {
+  display: block;
+  font-size: 1.05em;
+  line-height: 1.2;
+}
+
+.prop-color-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+}
+
+.prop-color-swatch-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--prop-control-min-height, 1.85em);
+  height: var(--prop-control-min-height, 1.85em);
+  cursor: pointer;
+}
+
+.prop-color-swatch {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--panel-border);
+  background: #141414;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.prop-color-swatch.empty {
+  background: #141414;
+}
+
+.prop-color-picker-hit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.prop-color-picker-hit:disabled {
+  cursor: not-allowed;
+}
+
+.prop-color-hex {
+  flex: 1;
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.prop-borders-section {
+  gap: 10px;
+}
+
+.prop-border-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prop-border-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.prop-border-block-title {
+  font: inherit;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* border diagram editor */
+.border-diagram-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 80%;
+  max-width: 100%;
+  margin-inline: auto;
+  min-width: 0;
+}
+
+.border-diagram-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.border-diagram {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.border-diagram-links {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+}
+
+.border-side-hit {
+  display: block;
+  width: 100%;
+  min-height: 22px;
+  padding: 0;
+  border: 1px solid #333333;
+  background: #111111;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.border-side-hit:hover {
+  background: #161616;
+  border-color: #444444;
+}
+
+.border-side-hit.active {
+  border-color: var(--border-accent, #aacc00);
+  background: #1a1a1a;
+  box-shadow: inset 0 0 0 1px var(--border-accent, #aacc00);
+}
+
+.border-diagram-middle {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 4px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.border-side-left,
+.border-side-right {
+  width: 22px;
+  min-height: 72px;
+}
+
+.border-diagram-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  border: 1px solid #2a2a2a;
+  background: #0a0a0a;
+  color: #666666;
+  font: inherit;
+  font-size: 0.65em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
+}
+
+.border-radius-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.border-radius-diagram {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.border-radius-box {
+  position: relative;
+  min-height: 88px;
+  border: 1px solid #333333;
+  background: #111111;
+}
+
+.border-radius-element-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666666;
+  font: inherit;
+  font-size: 0.65em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
+}
+
+.border-corner-hit {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid #333333;
+  background: #141414;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.border-corner-hit:hover {
+  background: #1c1c1c;
+  border-color: #444444;
+}
+
+.border-corner-hit.active {
+  border-color: var(--border-accent, #aacc00);
+  background: #1a1a1a;
+  box-shadow: inset 0 0 0 1px var(--border-accent, #aacc00);
+}
+
+.border-corner-mark {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #666666;
+  border-radius: 2px;
+  background: #222222;
+}
+
+.border-corner-hit.active .border-corner-mark {
+  border-color: var(--border-accent, #aacc00);
+  background: #2a2a18;
+}
+
+.border-corner-tl {
+  top: -6px;
+  left: -6px;
+}
+
+.border-corner-tr {
+  top: -6px;
+  right: -6px;
+}
+
+.border-corner-br {
+  bottom: -6px;
+  right: -6px;
+}
+
+.border-corner-bl {
+  bottom: -6px;
+  left: -6px;
+}
+
+.border-popover {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--panel-border);
+  background: #141414;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
+}
+
+.border-popover-title {
+  font: inherit;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--border-accent, #aacc00);
+}
+
+.border-popover-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.border-popover-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.border-popover-label {
+  font: inherit;
+  font-size: 0.68em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.border-popover-top {
+  top: 0;
+  bottom: auto;
+  transform: translateY(calc(-100% - 6px));
+}
+
+.border-popover-bottom,
+.border-popover-left,
+.border-popover-right {
+  top: auto;
+  bottom: 0;
+  transform: translateY(calc(100% + 6px));
+}
+
+.border-popover-corner-tl,
+.border-popover-corner-tr,
+.border-popover-corner-br,
+.border-popover-corner-bl {
+  top: auto;
+  bottom: 0;
+  transform: translateY(calc(100% + 6px));
+}
+
+.prop-link-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 0.2em 0.45em;
+  border: 1px solid var(--panel-border);
+  background: #141414;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.prop-link-toggle:hover {
+  background: #1c1c1c;
+  color: var(--text);
+}
+
+.prop-link-toggle.active {
+  border-color: var(--toggle-accent, #aacc00);
+  color: var(--toggle-accent, #aacc00);
+  background: #1a1a1a;
+  box-shadow: inset 0 0 0 1px var(--toggle-accent, #aacc00);
+}
+
+.border-diagram-links .prop-link-toggle {
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  justify-content: center;
+}
+
+.prop-outline-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) minmax(0, 1.3fr);
+  gap: 6px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.prop-outline-row .prop-select,
+.prop-outline-row .prop-size-row,
+.prop-outline-row .prop-color-row {
+  min-width: 0;
+}
+
+.prop-background-preset-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+
+.prop-background-preset-row .prop-combobox {
+  flex: 0 0 42%;
+  min-width: 5.5rem;
+  max-width: 9rem;
+}
+
+.prop-background-preset-row .prop-input {
+  flex: 1;
+  min-width: 0;
 }
 
 .prop-subsection {

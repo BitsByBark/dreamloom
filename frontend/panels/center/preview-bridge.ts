@@ -76,7 +76,7 @@ export const PREVIEW_BRIDGE_PREFIX = "/__dreamloom_preview__";
 /** Inline script injected into proxied HTML — runs inside the preview iframe */
 export function previewBridgeScript(): string {
   return `(()=>{
-var accent="#3B82F6";
+var accent="#AACC00";
 var outlined=null;
 var lastTreeRoot=null;
 var nodeCount=0;

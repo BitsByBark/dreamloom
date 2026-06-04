@@ -3,32 +3,20 @@
   import "../app.css";
   import { initSessionLogFile } from "$debug/log-file";
   import { appState } from "$lib/app-state.svelte";
-  import { centerTabs } from "$lib/center-tabs.svelte";
-  import { restoreSession } from "$lib/restore-session";
-  import { saveSession } from "$lib/session-storage";
+  import GitHubDeviceModal from "$misc/GitHubDeviceModal.svelte";
+  import WelcomeModal from "$misc/WelcomeModal.svelte";
+  import { hydrateAuth } from "$auth/authStore.svelte";
   import { initSettings, settings } from "$settings/settings.svelte";
 
   let { children } = $props();
 
-  let sessionReady = $state(false);
+  let ready = $state(false);
 
   $effect(() => {
     void initSettings().then(async () => {
       await initSessionLogFile();
-      await restoreSession();
-      sessionReady = true;
-    });
-  });
-
-  $effect(() => {
-    if (!sessionReady) {
-      return;
-    }
-
-    saveSession({
-      openDirectory: appState.openDirectory,
-      tabPaths: centerTabs.tabs.map((tab) => tab.path),
-      activePath: centerTabs.activePath,
+      ready = true;
+      void hydrateAuth();
     });
   });
 
@@ -41,5 +29,11 @@
     );
   });
 </script>
+
+{#if ready && !appState.openDirectory}
+  <WelcomeModal />
+{/if}
+
+<GitHubDeviceModal />
 
 {@render children()}

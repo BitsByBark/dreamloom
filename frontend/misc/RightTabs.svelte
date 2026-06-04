@@ -7,8 +7,8 @@
   import CssVars from "$panels/css-vars/index.svelte";
 
   const tabs: { id: RightTab; label: string }[] = [
-    { id: "editor", label: "Editor" },
     { id: "properties", label: "Properties" },
+    { id: "editor", label: "Editor" },
     { id: "cssVars", label: "CSS Vars" },
   ];
 

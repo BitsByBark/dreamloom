@@ -1,6 +1,6 @@
 <script lang="ts">
   import "./properties-theme.css";
-  import { currentBridgeDlClass, editorBridge } from "$lib/bridge-selection.svelte";
+  import { editorBridge } from "$lib/bridge-selection.svelte";
   import LayoutField from "./LayoutField.svelte";
   import PropSearchSelect from "./PropSearchSelect.svelte";
   import { selectionIdentity } from "./property-pseudo-state";
@@ -8,11 +8,17 @@
   import AspectRatioInput from "./AspectRatioInput.svelte";
   import SizeDimensionInput from "./SizeDimensionInput.svelte";
   import { getSizeComputedValues } from "./size-computed";
-  import { emptySizeDraft, OVERFLOW_OPTIONS, sizeDraftFromComputed } from "./size-fields";
+  import { commitPropertyChange } from "$injector";
+  import {
+    composeAspectRatio,
+    emptySizeDraft,
+    OVERFLOW_OPTIONS,
+    sizeDraftFromComputed,
+  } from "./size-fields";
 
-  const hasSelection = $derived(
-    currentBridgeDlClass() !== null && editorBridge.selection !== null,
-  );
+  function commitAspectRatio() {
+    void commitPropertyChange("aspect-ratio", composeAspectRatio(draft.aspectW, draft.aspectH));
+  }
 
   const selectionKey = $derived(selectionIdentity(editorBridge.selection));
 
@@ -24,19 +30,27 @@
   });
 </script>
 
-<PropertySection title="Size" startExpanded={true}>
+<PropertySection title="Size">
   <div class="prop-stack prop-size-section">
     <div class="prop-size-grid">
       <div class="prop-size-col">
-        <SizeDimensionInput label="WIDTH" bind:value={draft.width} disabled={!hasSelection} />
-        <SizeDimensionInput label="MIN-WIDTH" bind:value={draft.minWidth} disabled={!hasSelection} />
-        <SizeDimensionInput label="MAX-WIDTH" bind:value={draft.maxWidth} disabled={!hasSelection} />
+        <SizeDimensionInput label="WIDTH" bind:value={draft.width} cssProperty="width" />
+        <SizeDimensionInput label="MIN-WIDTH" bind:value={draft.minWidth} cssProperty="min-width" />
+        <SizeDimensionInput label="MAX-WIDTH" bind:value={draft.maxWidth} cssProperty="max-width" />
       </div>
 
       <div class="prop-size-col">
-        <SizeDimensionInput label="HEIGHT" bind:value={draft.height} disabled={!hasSelection} />
-        <SizeDimensionInput label="MIN-HEIGHT" bind:value={draft.minHeight} disabled={!hasSelection} />
-        <SizeDimensionInput label="MAX-HEIGHT" bind:value={draft.maxHeight} disabled={!hasSelection} />
+        <SizeDimensionInput label="HEIGHT" bind:value={draft.height} cssProperty="height" />
+        <SizeDimensionInput
+          label="MIN-HEIGHT"
+          bind:value={draft.minHeight}
+          cssProperty="min-height"
+        />
+        <SizeDimensionInput
+          label="MAX-HEIGHT"
+          bind:value={draft.maxHeight}
+          cssProperty="max-height"
+        />
       </div>
     </div>
 
@@ -46,8 +60,8 @@
           listboxId="size-overflow-x"
           options={OVERFLOW_OPTIONS}
           bind:value={draft.overflowX}
-          disabled={!hasSelection}
           placeholder="Search overflow-x…"
+          cssProperty="overflow-x"
         />
       </LayoutField>
 
@@ -56,15 +70,15 @@
           listboxId="size-overflow-y"
           options={OVERFLOW_OPTIONS}
           bind:value={draft.overflowY}
-          disabled={!hasSelection}
           placeholder="Search overflow-y…"
+          cssProperty="overflow-y"
         />
       </LayoutField>
     </div>
 
     <div class="prop-size-grid">
-      <AspectRatioInput label="RATIO W" bind:value={draft.aspectW} disabled={!hasSelection} />
-      <AspectRatioInput label="RATIO H" bind:value={draft.aspectH} disabled={!hasSelection} />
+      <AspectRatioInput label="RATIO W" bind:value={draft.aspectW} onCommit={commitAspectRatio} />
+      <AspectRatioInput label="RATIO H" bind:value={draft.aspectH} onCommit={commitAspectRatio} />
     </div>
   </div>
 </PropertySection>

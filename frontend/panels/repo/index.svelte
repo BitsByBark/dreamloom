@@ -39,8 +39,9 @@
   .hint {
     margin: 0;
     padding: 8px;
+    font: inherit;
     color: var(--text-muted);
-    font-size: 12px;
+    line-height: 1.5;
   }
 
   .hint.error {

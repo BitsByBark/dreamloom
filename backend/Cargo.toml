@@ -24,4 +24,8 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+# v3 has no default store — without platform features you get the mock keystore (nothing persists)
+keyring = { version = "3", features = ["apple-native", "windows-native", "linux-native-sync-persistent", "crypto-rust"] }
+dotenvy = "0.15"
 

@@ -43,7 +43,7 @@
     });
   });
 
-  const hasSelection = $derived(activeDlClass !== null && editorBridge.selection !== null);
+  const hasSelection = $derived(editorBridge.selection !== null);
 
   const comboboxDisabled = $derived(!activeFile.path?.endsWith(".svelte"));
 
