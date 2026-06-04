@@ -2,7 +2,11 @@
   import { onMount } from "svelte";
   import { appState } from "$lib/app-state.svelte";
   import { centerTabs, closeCenterTab, selectCenterTab } from "$lib/center-tabs.svelte";
-  import { handlePreviewClear, handlePreviewSelect } from "$lib/bridge-selection.svelte";
+  import {
+    handlePreviewClear,
+    handlePreviewSelect,
+    handlePreviewSelectElement,
+  } from "$lib/bridge-selection.svelte";
   import { previewPageUrl } from "$lib/preview-url";
   import { ACCENT_COLOR } from "$settings/storage";
   import type { DreamloomPreviewMessage } from "./preview-bridge";
@@ -61,6 +65,11 @@
 
     if (data.type === "dreamloom:select" && data.dlClass) {
       void handlePreviewSelect(data);
+      return;
+    }
+
+    if (data.type === "dreamloom:selectElement") {
+      handlePreviewSelectElement(data);
     }
   }
 

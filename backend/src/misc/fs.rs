@@ -33,3 +33,19 @@ pub fn list_directory(path: String) -> Result<Vec<DirEntry>, String> {
 
     Ok(entries)
 }
+
+/// Read a UTF-8 text file using std::fs instead of the scope-restricted
+/// plugin-fs, so component-source resolution can read any opened project file
+/// (consistent with `list_directory`).
+#[tauri::command]
+pub fn read_text_file(path: String) -> Result<String, String> {
+    std::fs::read_to_string(&path).map_err(|e| e.to_string())
+}
+
+/// Write a UTF-8 text file using std::fs instead of the scope-restricted
+/// plugin-fs, so any opened project file can be saved regardless of capability
+/// scope (consistent with `read_text_file`).
+#[tauri::command]
+pub fn write_text_file(path: String, content: String) -> Result<(), String> {
+    std::fs::write(&path, content).map_err(|e| e.to_string())
+}

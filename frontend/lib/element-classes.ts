@@ -85,6 +85,23 @@ export function getElementClassList(
   return parseClassTokens(attr.value);
 }
 
+const DL_GEN_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+/** Generate a unique `dl-` + 4 random alphanumeric class (e.g. `dl-a1b2`). */
+export function generateDlClass(existing: Set<string>): string {
+  for (let attempt = 0; attempt < 1000; attempt++) {
+    let token = "dl-";
+    for (let i = 0; i < 4; i++) {
+      token += DL_GEN_CHARS[Math.floor(Math.random() * DL_GEN_CHARS.length)];
+    }
+    if (!existing.has(token)) {
+      return token;
+    }
+  }
+  // Astronomically unlikely fallback — keep it unique and valid.
+  return `dl-${Date.now().toString(36).slice(-4)}`;
+}
+
 const DL_CLASS_RE = /^dl-[a-zA-Z][\w-]*$/;
 
 /** Normalize user input to a valid dl-* token, or null. */

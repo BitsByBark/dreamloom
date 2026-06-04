@@ -6,6 +6,7 @@ import {
   type Extension,
 } from "@codemirror/state";
 import { Decoration, EditorView } from "@codemirror/view";
+import { logDebugTrace } from "$debug/logging.svelte";
 
 export type ElementHighlightRange = {
   fromLine: number;
@@ -64,9 +65,11 @@ const elementHighlightField = StateField.define({
       if (effect.is(setElementHighlight)) {
         lastHighlight = effect.value;
         const decos = buildDecorations(tr.state, effect.value);
-        // #region agent log
-        fetch('http://127.0.0.1:7790/ingest/b88598fb-327a-4542-ba31-cc39203b33a7',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a9a834'},body:JSON.stringify({sessionId:'a9a834',hypothesisId:'E',location:'element-highlight.ts:field.update',message:'effect applied',data:{value:effect.value,decoSize:decos.size,docLines:tr.state.doc.lines},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
+        logDebugTrace("element-highlight.ts:field.update", "effect applied", {
+          value: effect.value,
+          decoSize: decos.size,
+          docLines: tr.state.doc.lines,
+        });
         return decos;
       }
     }

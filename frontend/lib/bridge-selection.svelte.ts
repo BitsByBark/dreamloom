@@ -1,3 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
+import { activeFileContent } from "$lib/active-file-content";
 import { appState } from "$lib/app-state.svelte";
 import {
   clearComponentTree,
@@ -8,6 +10,8 @@ import {
   setComponentTree,
 } from "$lib/component-tree.svelte";
 import { centerTabs, focusCenterTab, openCenterTab } from "$lib/center-tabs.svelte";
+import { generateDlClass, listDlClassesInSource } from "$lib/element-classes";
+import { findElementLineRange } from "$lib/find-element-lines";
 import {
   resolveDlClassSource,
   resolveIdSource,
@@ -18,8 +22,10 @@ import type {
   DreamloomPreviewChainUpdateMessage,
   DreamloomPreviewClearMessage,
   DreamloomPreviewSelectByIdMessage,
+  DreamloomPreviewSelectElementMessage,
   DreamloomPreviewSelectMessage,
 } from "$panels/center/preview-bridge";
+import { clearElementStyles, loadElementStyles } from "$properties/element-styles.svelte";
 import { settings } from "$settings/settings.svelte";
 
 export type EditorBridgeSelection =
@@ -37,6 +43,20 @@ export type EditorBridgeSelection =
       fromLine: number;
       toLine: number;
       generation: number;
+    }
+  | {
+      // A bare element (no dl-*/id) with a generated dl-* class not yet written
+      // to source. Materialized into a "dl" selection on the first edit.
+      matchKind: "element";
+      tagName: string;
+      classes: string[];
+      occurrence: number;
+      filePath: string;
+      pendingDlClass: string;
+      injected: boolean;
+      fromLine: number;
+      toLine: number;
+      generation: number;
     };
 
 export const editorBridge = $state({
@@ -46,6 +66,7 @@ export const editorBridge = $state({
 export function clearEditorBridgeSelection(): void {
   editorBridge.selection = null;
   clearComponentTree();
+  clearElementStyles();
 }
 
 export function handlePreviewClear(_message?: DreamloomPreviewClearMessage): void {
@@ -96,6 +117,12 @@ async function applyResolvedSource(
     generation: bumpGeneration(),
   };
 
+  if (selection.matchKind === "dl") {
+    await loadElementStyles(resolved.path, selection.dlClass);
+  } else {
+    clearElementStyles();
+  }
+
   if (highlightPreview && selection.matchKind === "dl") {
     postToPreview({
       type: "dreamloom:highlightDl",
@@ -110,6 +137,11 @@ export function currentBridgeDlClass(): string | null {
   const sel = editorBridge.selection;
   if (sel?.matchKind === "dl") {
     return sel.dlClass;
+  }
+
+  // A bare element carries a generated, not-yet-written dl class.
+  if (sel?.matchKind === "element") {
+    return sel.pendingDlClass;
   }
 
   if (componentTree.tree) {
@@ -168,6 +200,7 @@ export async function handlePreviewSelect(message: DreamloomPreviewSelectMessage
 
   if (!resolved) {
     editorBridge.selection = null;
+    clearElementStyles();
     if (settings.debugMode) {
       console.debug(
         "[dreamloom] dl class not found in project:",
@@ -200,6 +233,7 @@ export async function handlePreviewSelectById(
 
   if (!resolved) {
     editorBridge.selection = null;
+    clearElementStyles();
     if (settings.debugMode) {
       console.debug("[dreamloom] id not found in project:", message.id);
     }
@@ -253,6 +287,122 @@ export async function handlePreviewChainUpdate(
         generation: 0,
       });
     }
+  }
+}
+
+export function handlePreviewSelectElement(
+  message: DreamloomPreviewSelectElementMessage,
+): void {
+  if (message.tree) {
+    setComponentTree(message.tree, message.selectedPath ?? []);
+  }
+
+  const active = activeFileContent();
+  if (!active.path || !active.path.endsWith(".svelte")) {
+    console.warn("[dl-inject] no active .svelte file to inject into");
+    editorBridge.selection = null;
+    clearElementStyles();
+    return;
+  }
+
+  const existing = new Set(listDlClassesInSource(active.content ?? ""));
+  const pendingDlClass = generateDlClass(existing);
+  console.log(
+    "[dl-inject] generated pending class",
+    pendingDlClass,
+    `for <${message.tagName}>`,
+    { classes: message.classes, occurrence: message.occurrence, file: active.path },
+  );
+
+  editorBridge.selection = {
+    matchKind: "element",
+    tagName: message.tagName,
+    classes: message.classes ?? [],
+    occurrence: message.occurrence ?? 0,
+    filePath: active.path,
+    pendingDlClass,
+    injected: false,
+    fromLine: 0,
+    toLine: 0,
+    generation: bumpGeneration(),
+  };
+  clearElementStyles();
+}
+
+/**
+ * Write the pending dl-* class into source (via the Rust `inject_dl_class`
+ * command), then promote the bare `element` selection to a normal `dl`
+ * selection. Returns false — writing nothing — when injection fails, so the
+ * caller can abort the edit (fail closed).
+ */
+export async function materializePendingDlClass(): Promise<boolean> {
+  const sel = editorBridge.selection;
+  if (!sel || sel.matchKind !== "element" || sel.injected) {
+    return true;
+  }
+
+  console.log("[dl-inject] materializing", sel.pendingDlClass, "into", sel.filePath);
+  try {
+    const outcome = await invoke("inject_dl_class", {
+      filePath: sel.filePath,
+      identifier: {
+        tagName: sel.tagName,
+        classes: sel.classes,
+        occurrence: sel.occurrence,
+      },
+      dlClass: sel.pendingDlClass,
+    });
+    console.log("[dl-inject] outcome", outcome);
+  } catch (error) {
+    console.error("[dl-inject] inject_dl_class failed; aborting edit", error);
+    return false;
+  }
+
+  // Re-read the now-updated file, refresh the open buffer, recompute the range.
+  let content: string;
+  try {
+    content = await invoke<string>("read_text_file", { path: sel.filePath });
+  } catch (error) {
+    console.error("[dl-inject] could not re-read file after injection", error);
+    return false;
+  }
+  syncTabBuffer(sel.filePath, content);
+
+  const range = findElementLineRange(content, sel.pendingDlClass, 0) ?? {
+    from: sel.fromLine,
+    to: sel.toLine,
+  };
+
+  // Reflect the new class on the selected tree node so its label updates.
+  if (componentTree.tree) {
+    const node = nodeAtPath(componentTree.tree, componentTree.selectedPath);
+    if (node) {
+      node.dlClass = sel.pendingDlClass;
+    }
+  }
+
+  editorBridge.selection = {
+    matchKind: "dl",
+    dlClass: sel.pendingDlClass,
+    occurrenceIndex: 0,
+    fromLine: range.from,
+    toLine: range.to,
+    generation: bumpGeneration(),
+  };
+
+  await loadElementStyles(sel.filePath, sel.pendingDlClass);
+  console.log("[dl-inject] selection promoted to dl", sel.pendingDlClass, range);
+  return true;
+}
+
+function syncTabBuffer(path: string, content: string): void {
+  const tab = centerTabs.tabs.find((entry) => entry.path === path);
+  if (tab) {
+    tab.content = content;
+    tab.evicted = false;
+  }
+  if (centerTabs.activePath === path) {
+    appState.openFileContent = content;
   }
 }
 

@@ -1,3 +1,5 @@
+import { logDebugTrace } from "$debug/logging.svelte";
+
 const MAX_BLOCK_LINES = 500;
 
 function escapeRegExp(value: string): string {
@@ -43,9 +45,12 @@ export function findClassLineIndices(source: string, dlClass: string): number[] 
     }
   }
 
-  // #region agent log
-  fetch('http://127.0.0.1:7790/ingest/b88598fb-327a-4542-ba31-cc39203b33a7',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a9a834'},body:JSON.stringify({sessionId:'a9a834',hypothesisId:'A/B',location:'find-element-lines.ts:findClassLineIndices',message:'class line indices',data:{dlClass,strict,loose,sample:lines[(strict[0]??loose[0])??0]?.slice(0,120)},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
+  logDebugTrace("find-element-lines.ts:findClassLineIndices", "class line indices", {
+    dlClass,
+    strict,
+    loose,
+    sample: lines[(strict[0] ?? loose[0]) ?? 0]?.slice(0, 120),
+  });
   return strict.length > 0 ? strict : loose;
 }
 

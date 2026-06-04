@@ -1,5 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
 import { join } from "@tauri-apps/api/path";
-import { readDir, readTextFile } from "@tauri-apps/plugin-fs";
 import { activeFileContent } from "$lib/active-file-content";
 import { appState } from "$lib/app-state.svelte";
 import { centerTabs } from "$lib/center-tabs.svelte";
@@ -14,6 +14,9 @@ export type ResolvedComponentSource = {
   path: string;
   range: { from: number; to: number };
 };
+
+/** Mirrors the `DirEntry` returned by the `list_directory` Rust command. */
+type DirEntry = { name: string; isDirectory: boolean };
 
 function matchDlInContent(
   path: string,
@@ -81,7 +84,7 @@ function searchOpenTabsForId(id: string, skipPath: string | null): ResolvedCompo
 }
 
 async function collectSveltePaths(dir: string, paths: string[]): Promise<void> {
-  const entries = await readDir(dir);
+  const entries = await invoke<DirEntry[]>("list_directory", { path: dir });
 
   for (const entry of entries) {
     const path = await join(dir, entry.name);
@@ -145,7 +148,7 @@ async function searchProjectForDl(
     }
 
     reads++;
-    const content = await readTextFile(path);
+    const content = await invoke<string>("read_text_file", { path });
     const hit = matchDlInContent(path, content, dlClass, occurrence);
     if (hit) {
       return hit;
@@ -175,7 +178,7 @@ async function searchProjectForId(id: string): Promise<ResolvedComponentSource |
     }
 
     reads++;
-    const content = await readTextFile(path);
+    const content = await invoke<string>("read_text_file", { path });
     const hit = matchIdInContent(path, content, id);
     if (hit) {
       return hit;

@@ -22,6 +22,7 @@ const config = {
       $properties: "frontend/properties",
       $injector: "frontend/src/injector",
       $auth: "frontend/src/auth",
+      $git: "frontend/src/git",
       $assets: "assets",
     },
     adapter: adapter({

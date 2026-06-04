@@ -29,17 +29,15 @@ function parsePreviewPath(url: string): { port: number; targetPath: string } | n
   return { port, targetPath };
 }
 
+const MAX_REDIRECTS = 5;
+
 async function proxyRequest(
   req: IncomingMessage,
   res: ServerResponse,
   port: number,
   targetPath: string,
 ): Promise<void> {
-  const targetUrl = new URL(targetPath, `http://127.0.0.1:${port}`);
-  if (req.url?.includes("?")) {
-    const query = req.url.slice(req.url.indexOf("?"));
-    targetUrl.search = query;
-  }
+  const origin = `http://127.0.0.1:${port}`;
 
   const headers = new Headers();
   for (const [key, value] of Object.entries(req.headers)) {
@@ -55,8 +53,43 @@ async function proxyRequest(
   }
   headers.set("host", `127.0.0.1:${port}`);
 
-  const method = req.method ?? "GET";
-  const upstream = await fetch(targetUrl, { method, headers, redirect: "manual" });
+  let method = req.method ?? "GET";
+  let currentPath = targetPath;
+  let search = req.url?.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+
+  // Follow same-origin redirects ourselves so the bridge is injected into the
+  // final HTML. Otherwise the browser would follow the redirect straight to the
+  // cross-origin dev server, where no bridge script exists and clicks go silent.
+  let upstream: Response;
+  let redirects = 0;
+  while (true) {
+    const targetUrl = new URL(currentPath, origin);
+    if (search) targetUrl.search = search;
+
+    upstream = await fetch(targetUrl, { method, headers, redirect: "manual" });
+    const location = upstream.headers.get("location");
+    const isRedirect = upstream.status >= 300 && upstream.status < 400 && !!location;
+
+    if (!isRedirect || redirects >= MAX_REDIRECTS) {
+      break;
+    }
+
+    const resolved = new URL(location, targetUrl);
+    if (resolved.origin !== origin) {
+      // Can't inject into a foreign origin; hand the redirect to the browser.
+      break;
+    }
+
+    // 301/302/303 become GET in browsers; 307/308 preserve the method.
+    if (upstream.status === 301 || upstream.status === 302 || upstream.status === 303) {
+      method = "GET";
+    }
+    currentPath = resolved.pathname;
+    search = resolved.search;
+    redirects += 1;
+    await upstream.body?.cancel().catch(() => {});
+  }
+
   const contentType = upstream.headers.get("content-type") ?? "";
 
   res.statusCode = upstream.status;
