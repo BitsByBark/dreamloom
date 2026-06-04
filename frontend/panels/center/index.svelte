@@ -1,7 +1,12 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { appState } from "$lib/app-state.svelte";
   import { centerTabs, closeCenterTab, selectCenterTab } from "$lib/center-tabs.svelte";
+  import { handlePreviewClear, handlePreviewSelect } from "$lib/bridge-selection.svelte";
   import { previewPageUrl } from "$lib/preview-url";
+  import { settings } from "$settings/settings.svelte";
+  import type { DreamloomPreviewMessage } from "./preview-bridge";
+  import { filePathToRoute } from "./routes";
 
   const activeTab = $derived(
     centerTabs.tabs.find((tab) => tab.path === centerTabs.activePath) ?? null,
@@ -21,29 +26,53 @@
       : null,
   );
 
-  function filePathToRoute(filePath: string, projectRoot: string): string {
-    const normalizedRoot = projectRoot.replace(/\/$/, "");
-    const prefix = `${normalizedRoot}/`;
+  let previewFrame: HTMLIFrameElement | undefined = $state();
 
-    if (!filePath.startsWith(prefix)) {
-      return "/";
+  function postAccentConfig() {
+    const win = previewFrame?.contentWindow;
+    if (!win) {
+      return;
     }
 
-    const rel = filePath.slice(prefix.length);
-    if (!rel.startsWith("src/routes/")) {
-      return "/";
-    }
-
-    let route = rel
-      .replace(/^src\/routes/, "")
-      .replace(/\/?\+page\.svelte$/, "");
-
-    if (!route.startsWith("/")) {
-      route = `/${route}`;
-    }
-
-    return route || "/";
+    win.postMessage(
+      { type: "dreamloom:config", accentColor: settings.accentColor } satisfies DreamloomPreviewMessage,
+      "*",
+    );
   }
+
+  function onPreviewLoad() {
+    postAccentConfig();
+  }
+
+  function onPreviewMessage(event: MessageEvent) {
+    if (event.source !== previewFrame?.contentWindow) {
+      return;
+    }
+
+    const data = event.data as DreamloomPreviewMessage | undefined;
+    if (!data?.type) {
+      return;
+    }
+
+    if (data.type === "dreamloom:clear") {
+      handlePreviewClear(data);
+      return;
+    }
+
+    if (data.type === "dreamloom:select" && data.dlClass) {
+      handlePreviewSelect(data);
+    }
+  }
+
+  $effect(() => {
+    settings.accentColor;
+    postAccentConfig();
+  });
+
+  onMount(() => {
+    window.addEventListener("message", onPreviewMessage);
+    return () => window.removeEventListener("message", onPreviewMessage);
+  });
 </script>
 
 <div class="center">
@@ -97,7 +126,13 @@
       </div>
     {:else if previewUrl}
       {#key previewUrl}
-        <iframe class="preview-frame" title="Preview" src={previewUrl}></iframe>
+        <iframe
+          bind:this={previewFrame}
+          class="preview-frame"
+          title="Preview"
+          src={previewUrl}
+          onload={onPreviewLoad}
+        ></iframe>
       {/key}
     {/if}
   </div>

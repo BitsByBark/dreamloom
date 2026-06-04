@@ -3,9 +3,9 @@
   import { logLeftTab } from "$debug/logging.svelte";
   import { appState, type LeftTab } from "$lib/app-state.svelte";
   import { settings } from "$settings/settings.svelte";
-  import Git from "$panels/Git.svelte";
-  import Log from "$panels/Log.svelte";
-  import Repo from "$panels/Repo.svelte";
+  import Git from "$panels/git/index.svelte";
+  import Log from "$panels/log/index.svelte";
+  import Repo from "$panels/repo/index.svelte";
 
   type Props = {
     onCollapse: () => void;

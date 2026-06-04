@@ -9,6 +9,7 @@
   import { rescheduleAllEvictions } from "$lib/center-tabs.svelte";
   import { persistSettings, settings } from "$settings/settings.svelte";
   import {
+    clampAccentColor,
     clampLogFontSize,
     clampZoom,
     MIN_INACTIVE_EVICTION_DELAY_MS,
@@ -39,6 +40,7 @@
     settings.uiZoom = clampZoom(settings.uiZoom);
     settings.textZoom = clampZoom(settings.textZoom);
     settings.logFontSize = clampLogFontSize(settings.logFontSize);
+    settings.accentColor = clampAccentColor(settings.accentColor);
 
     const debugChanged = debugModeOnOpen !== settings.debugMode;
 
@@ -155,6 +157,24 @@
               step="0.1"
               bind:value={settings.textZoom}
             />
+          </label>
+
+          <label class="field">
+            <span class="label">Accent color — {settings.accentColor}</span>
+            <div class="color-row">
+              <input
+                type="color"
+                bind:value={settings.accentColor}
+                aria-label="Accent color picker"
+              />
+              <input
+                type="text"
+                class="color-hex"
+                bind:value={settings.accentColor}
+                spellcheck="false"
+                maxlength="7"
+              />
+            </div>
           </label>
 
           <div class="field">
@@ -295,6 +315,36 @@
     width: 14px;
     height: 14px;
     accent-color: #888888;
+  }
+
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .color-row input[type="color"] {
+    width: 40px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid var(--panel-border);
+    background: #141414;
+    cursor: pointer;
+  }
+
+  .color-hex {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--panel-border);
+    background: #141414;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+
+  .color-hex:focus {
+    outline: 1px solid #444444;
   }
 
   .action-btn {
