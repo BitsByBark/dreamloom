@@ -1,9 +1,49 @@
 <script lang="ts">
+  import { appState } from "$lib/app-state.svelte";
   import { centerTabs, closeCenterTab, selectCenterTab } from "$lib/center-tabs.svelte";
+  import { previewPageUrl } from "$lib/preview-url";
 
   const activeTab = $derived(
     centerTabs.tabs.find((tab) => tab.path === centerTabs.activePath) ?? null,
   );
+
+  const previewRoute = $derived.by(() => {
+    if (!activeTab || !appState.openDirectory) {
+      return "/";
+    }
+
+    return filePathToRoute(activeTab.path, appState.openDirectory);
+  });
+
+  const previewUrl = $derived(
+    appState.devServerStatus === "running" && appState.devServerPort !== null
+      ? previewPageUrl(appState.devServerPort, previewRoute)
+      : null,
+  );
+
+  function filePathToRoute(filePath: string, projectRoot: string): string {
+    const normalizedRoot = projectRoot.replace(/\/$/, "");
+    const prefix = `${normalizedRoot}/`;
+
+    if (!filePath.startsWith(prefix)) {
+      return "/";
+    }
+
+    const rel = filePath.slice(prefix.length);
+    if (!rel.startsWith("src/routes/")) {
+      return "/";
+    }
+
+    let route = rel
+      .replace(/^src\/routes/, "")
+      .replace(/\/?\+page\.svelte$/, "");
+
+    if (!route.startsWith("/")) {
+      route = `/${route}`;
+    }
+
+    return route || "/";
+  }
 </script>
 
 <div class="center">
@@ -36,11 +76,29 @@
     </div>
   {/if}
 
-  <div class="content text-zoom" role="tabpanel">
-    {#if !activeTab}
-      <p class="placeholder">Click a .svelte file in the repo tree</p>
-    {:else}
-      <p class="placeholder filename">{activeTab.filename}</p>
+  <div
+    class="content text-zoom"
+    class:preview={appState.devServerStatus === "running"}
+    role="tabpanel"
+  >
+    {#if appState.devServerStatus === "idle"}
+      <p class="placeholder">Open a project folder to start the dev server</p>
+    {:else if appState.devServerStatus === "starting"}
+      <div class="state">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="placeholder">Starting dev server…</p>
+      </div>
+    {:else if appState.devServerStatus === "error"}
+      <div class="state error">
+        <p class="placeholder">Dev server failed to start</p>
+        {#if appState.devServerError}
+          <p class="error-detail">{appState.devServerError}</p>
+        {/if}
+      </div>
+    {:else if previewUrl}
+      {#key previewUrl}
+        <iframe class="preview-frame" title="Preview" src={previewUrl}></iframe>
+      {/key}
     {/if}
   </div>
 </div>
@@ -126,14 +184,57 @@
     padding: 16px;
   }
 
+  .content.preview {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .state.error {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--panel-border);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   .placeholder {
     margin: 0;
     color: var(--text-muted);
     font-size: 13px;
   }
 
-  .filename {
-    color: var(--text);
-    font-size: 15px;
+  .error-detail {
+    margin: 0;
+    color: #e57373;
+    font-size: 12px;
+    word-break: break-word;
+  }
+
+  .preview-frame {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: none;
+    background: var(--bg);
   }
 </style>
