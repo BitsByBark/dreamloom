@@ -3,6 +3,7 @@ import { exists, mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-f
 
 export const SETTINGS_DIR_NAME = "dreamloom";
 export const SETTINGS_FILE_NAME = "settings.json";
+export const SESSION_LOGS_SUBDIR = "logs";
 export const DEFAULT_INACTIVE_EVICTION_DELAY_MS = 60_000;
 export const MIN_INACTIVE_EVICTION_DELAY_MS = 1000;
 export const DEFAULT_UI_ZOOM = 1.0;
@@ -38,16 +39,25 @@ export function clampLogFontSize(value: number): number {
   return Math.min(MAX_LOG_FONT_SIZE, Math.max(MIN_LOG_FONT_SIZE, Math.round(value)));
 }
 
-export async function settingsDirPath(): Promise<string> {
+/** Per-user app config directory (Tauri `configDir` + `dreamloom`), e.g. `~/.config/dreamloom` on Linux. */
+export async function dreamloomConfigDir(): Promise<string> {
   return join(await configDir(), SETTINGS_DIR_NAME);
 }
 
+export async function settingsDirPath(): Promise<string> {
+  return dreamloomConfigDir();
+}
+
+export async function sessionLogsDir(): Promise<string> {
+  return join(await dreamloomConfigDir(), SESSION_LOGS_SUBDIR);
+}
+
 export async function settingsFilePath(): Promise<string> {
-  return join(await settingsDirPath(), SETTINGS_FILE_NAME);
+  return join(await dreamloomConfigDir(), SETTINGS_FILE_NAME);
 }
 
 async function ensureSettingsDir(): Promise<void> {
-  const dir = await settingsDirPath();
+  const dir = await dreamloomConfigDir();
   if (!(await exists(dir))) {
     await mkdir(dir, { recursive: true });
   }

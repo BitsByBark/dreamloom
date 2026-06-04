@@ -1,10 +1,9 @@
-import { invoke } from "@tauri-apps/api/core";
 import { join } from "@tauri-apps/api/path";
 import { exists, mkdir, open, readDir, remove, type FileHandle } from "@tauri-apps/plugin-fs";
+import { sessionLogsDir } from "$settings/storage";
 
 export type SessionLogLevel = "good" | "warn" | "perf" | "error";
 
-export const LOGS_SUBDIR = "runtime/logs";
 export const MAX_LOG_FILES = 5;
 const LOG_EXTENSION = ".log";
 
@@ -52,8 +51,7 @@ export async function initSessionLogFile(): Promise<void> {
   }
 
   try {
-    const root = await invoke<string>("project_root");
-    const logsDir = await join(root, LOGS_SUBDIR);
+    const logsDir = await sessionLogsDir();
 
     if (!(await exists(logsDir))) {
       await mkdir(logsDir, { recursive: true });

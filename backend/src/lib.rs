@@ -1,13 +1,6 @@
+use tauri::path::BaseDirectory;
+use tauri::Manager;
 use tauri_plugin_fs::FsExt;
-
-#[tauri::command]
-fn project_root() -> Result<String, String> {
-    std::env::current_dir()
-        .map_err(|error| error.to_string())?
-        .canonicalize()
-        .map_err(|error| error.to_string())
-        .map(|path| path.to_string_lossy().into_owned())
-}
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -21,10 +14,10 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            let logs_dir = std::env::current_dir()
-                .map_err(|error| error.to_string())?
-                .join("runtime")
-                .join("logs");
+            let logs_dir = app
+                .path()
+                .resolve("dreamloom/logs", BaseDirectory::Config)
+                .map_err(|error| error.to_string())?;
 
             std::fs::create_dir_all(&logs_dir).map_err(|error| error.to_string())?;
             app.fs_scope()
@@ -33,7 +26,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, project_root])
+        .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
