@@ -26,6 +26,7 @@ import type {
   DreamloomPreviewSelectMessage,
 } from "$panels/center/preview-bridge";
 import { clearElementStyles, loadElementStyles } from "$properties/element-styles.svelte";
+import { selectNamedClass } from "../src/namedClasses/namedClassStore";
 import { settings } from "$settings/settings.svelte";
 
 export type EditorBridgeSelection =
@@ -118,6 +119,7 @@ async function applyResolvedSource(
   };
 
   if (selection.matchKind === "dl") {
+    selectNamedClass(null);
     await loadElementStyles(resolved.path, selection.dlClass);
   } else {
     clearElementStyles();

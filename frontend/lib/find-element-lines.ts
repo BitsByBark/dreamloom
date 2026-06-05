@@ -1,5 +1,3 @@
-import { logDebugTrace } from "$debug/logging.svelte";
-
 const MAX_BLOCK_LINES = 500;
 
 function escapeRegExp(value: string): string {
@@ -45,12 +43,6 @@ export function findClassLineIndices(source: string, dlClass: string): number[] 
     }
   }
 
-  logDebugTrace("find-element-lines.ts:findClassLineIndices", "class line indices", {
-    dlClass,
-    strict,
-    loose,
-    sample: lines[(strict[0] ?? loose[0]) ?? 0]?.slice(0, 120),
-  });
   return strict.length > 0 ? strict : loose;
 }
 

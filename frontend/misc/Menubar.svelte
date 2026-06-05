@@ -2,7 +2,12 @@
   import { openDirectory } from "$lib/open-directory";
   import SettingsModal from "$misc/SettingsModal.svelte";
   import TopbarUser from "$misc/TopbarUser.svelte";
+  import WindowControls from "$misc/WindowControls.svelte";
+  import { settings } from "$settings/settings.svelte";
   import wordmarkUrl from "$assets/images/Wordmark.png";
+
+  const frameless = $derived(settings.windowDecorations !== "native");
+  const showWindowControls = $derived(settings.windowDecorations === "dreamloom");
 
   let fileMenuOpen = $state(false);
   let settingsMenuOpen = $state(false);
@@ -52,7 +57,7 @@
 <svelte:window onclick={onWindowClick} />
 
 <header class="menubar ui-chrome">
-  <div class="menubar-brand">
+  <div class="menubar-brand" data-tauri-drag-region={frameless ? "" : undefined}>
     <img class="menubar-wordmark" src={wordmarkUrl} alt="Dreamloom" />
   </div>
 
@@ -94,8 +99,15 @@
     {/if}
   </div>
 
-  <div class="menubar-spacer" aria-hidden="true"></div>
+  <div
+    class="menubar-spacer"
+    aria-hidden="true"
+    data-tauri-drag-region={frameless ? "" : undefined}
+  ></div>
   <TopbarUser />
+  {#if showWindowControls}
+    <WindowControls />
+  {/if}
 </header>
 
 <SettingsModal open={settingsModalOpen} onclose={closeSettingsModal} />

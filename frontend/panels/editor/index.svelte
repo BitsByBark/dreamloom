@@ -9,7 +9,6 @@
   import { editorBridge } from "$lib/bridge-selection.svelte";
   import { centerTabs } from "$lib/center-tabs.svelte";
   import { findElementLineRange, findIdLineRange } from "$lib/find-element-lines";
-  import { logDebugTrace } from "$debug/logging.svelte";
   import { amoledTheme } from "$lib/codemirror/amoled-theme";
   import {
     accentHighlightBackground,
@@ -37,12 +36,6 @@
   }
 
   function applyBridgeSelection() {
-    logDebugTrace("editor/index.svelte:applyBridgeSelection", "enter", {
-      hasView: !!view,
-      hasSel: !!editorBridge.selection,
-      docLines: view?.state.doc.lines,
-      docLen: view?.state.doc.length,
-    });
     if (!view) {
       return;
     }
@@ -77,15 +70,6 @@
       }),
       selection: { anchor: lineObj.from },
       scrollIntoView: true,
-    });
-    logDebugTrace("editor/index.svelte:applyBridgeSelection", "dispatched highlight", {
-      matchKind: sel.matchKind,
-      stored: { from: sel.fromLine, to: sel.toLine },
-      recomputed,
-      used: range,
-      bg,
-      docLines: doc.lines,
-      textLen: text.length,
     });
   }
 

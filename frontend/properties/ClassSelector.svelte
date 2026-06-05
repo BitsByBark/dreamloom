@@ -1,6 +1,7 @@
 <script lang="ts">
   import "./properties-theme.css";
   import { activeFileContent } from "$lib/active-file-content";
+  import { appState } from "$lib/app-state.svelte";
   import {
     bridgeSelectDlClass,
     currentBridgeDlClass,
@@ -16,10 +17,14 @@
     removeClassFromElement,
   } from "$lib/element-classes";
   import { saveSvelteSource } from "$lib/source-file";
+  import { extractCurrentDlClass, loadNamedClassStyles, refreshNamedClasses } from "../src/namedClasses/extractClass";
+  import { namedClassStore, selectNamedClass } from "../src/namedClasses/namedClassStore";
   import DlClassCombobox from "./DlClassCombobox.svelte";
   import PropertySection from "./PropertySection.svelte";
 
   let addClassInput = $state("");
+  let savingNamedClass = $state(false);
+  let namedClassInput = $state("");
 
   const activeDlClass = $derived(currentBridgeDlClass());
 
@@ -48,6 +53,7 @@
   const comboboxDisabled = $derived(!activeFile.path?.endsWith(".svelte"));
 
   async function onDlSelect(dlClass: string) {
+    selectNamedClass(null);
     await bridgeSelectDlClass(dlClass, 0, {
       focusEditor: false,
       highlightPreview: true,
@@ -65,6 +71,31 @@
       focusEditor: false,
       highlightPreview: true,
     });
+  }
+
+  $effect(() => {
+    activeFile.path;
+    appState.openDirectory;
+    void refreshNamedClasses();
+  });
+
+  async function confirmNamedClass() {
+    const value = namedClassInput;
+    namedClassInput = "";
+    savingNamedClass = false;
+    await extractCurrentDlClass(value);
+  }
+
+  function onNamedClassKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void confirmNamedClass();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      savingNamedClass = false;
+      namedClassInput = "";
+    }
   }
 
   async function mutateClasses(mutator: (source: string, range: { from: number; to: number }) => string | null) {
@@ -113,7 +144,15 @@
 <PropertySection title="Class">
   <div class="prop-stack">
     <label class="prop-field">
-      <span class="prop-field-label">In file</span>
+      <span class="prop-field-label class-selector-header">
+        <span>In file</span>
+        <button
+          type="button"
+          class="save-class-btn"
+          disabled={!activeDlClass || !activeFile.path?.endsWith(".svelte")}
+          onclick={() => (savingNamedClass = true)}
+        >SAVE AS CLASS</button>
+      </span>
       <DlClassCombobox
         options={fileDlClasses}
         value={activeDlClass ?? ""}
@@ -123,6 +162,32 @@
         onCreate={createDlClass}
       />
     </label>
+
+    {#if savingNamedClass}
+      <div class="named-class-save-row">
+        <input
+          type="text"
+          class="prop-input"
+          placeholder="btn-primary"
+          bind:value={namedClassInput}
+          onkeydown={onNamedClassKeydown}
+        />
+        <button type="button" class="save-class-btn" onclick={confirmNamedClass}>OK</button>
+      </div>
+    {/if}
+
+    {#if $namedClassStore.classes.length > 0}
+      <div class="prop-chips" role="list" aria-label="Named classes">
+        {#each $namedClassStore.classes as className (className)}
+          <button
+            type="button"
+            class="prop-chip named-class-chip"
+            class:active={$namedClassStore.activeClass === className}
+            onclick={() => loadNamedClassStyles(className)}
+          >.{className}</button>
+        {/each}
+      </div>
+    {/if}
 
     <label class="prop-field">
       <span class="prop-field-label">Add class</span>
@@ -159,3 +224,46 @@
     {/if}
   </div>
 </PropertySection>
+
+<style>
+  .class-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .save-class-btn {
+    padding: 2px 6px;
+    border: 1px solid var(--panel-border);
+    background: #141414;
+    color: var(--text-muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8em;
+  }
+
+  .save-class-btn:hover:not(:disabled) {
+    color: var(--text);
+    background: #1c1c1c;
+  }
+
+  .save-class-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .named-class-save-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .named-class-chip {
+    cursor: pointer;
+  }
+
+  .named-class-chip.active {
+    border-color: var(--accent, #aacc00);
+    color: var(--accent, #aacc00);
+  }
+</style>

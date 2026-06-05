@@ -77,6 +77,11 @@ async function dreamloomCssPath(): Promise<string | null> {
   return join(root, DREAMLOOM_CSS_FILE);
 }
 
+function setStoreError(error: unknown): void {
+  cssVarsStore.error =
+    error instanceof Error ? error.message : String(error);
+}
+
 function applyBackendVars(vars: { name: string; value: string }[]): void {
   cssVarsStore.variables = vars.map((v) => ({
     id: v.name,
@@ -109,11 +114,6 @@ export async function refreshCssVars(): Promise<void> {
   } finally {
     cssVarsStore.loading = false;
   }
-}
-
-function setStoreError(error: unknown): void {
-  cssVarsStore.error =
-    error instanceof Error ? error.message : String(error);
 }
 
 export async function persistCssVar(name: string, value: string): Promise<boolean> {

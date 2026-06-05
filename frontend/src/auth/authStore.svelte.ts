@@ -117,7 +117,7 @@ export async function hydrateAuth(): Promise<void> {
 
 export async function refreshRepoMetrics(): Promise<void> {
   const path = appState.openDirectory;
-  if (!path || authStore.status !== "authenticated") {
+  if (!path) {
     authStore.repoMetrics = null;
     return;
   }

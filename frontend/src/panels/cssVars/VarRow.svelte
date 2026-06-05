@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isColorValue, type CssVariable } from "../../cssVars/cssVarsStore";
+  import { isColorValue, type CssVariable } from "../../cssVars/cssVarsStore.svelte";
 
   type Props = {
     entry: CssVariable;

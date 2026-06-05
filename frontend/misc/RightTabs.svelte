@@ -4,7 +4,6 @@
   import { appState, type RightTab } from "$lib/app-state.svelte";
   import Editor from "$panels/editor/index.svelte";
   import Properties from "$panels/properties/index.svelte";
-  import CssVars from "$panels/css-vars/index.svelte";
 
   const tabs: { id: RightTab; label: string }[] = [
     { id: "properties", label: "Properties" },
@@ -29,8 +28,14 @@
         <Editor />
       {:else if appState.rightTab === "properties"}
         <Properties />
-      {:else}
-        <CssVars />
+      {:else if appState.rightTab === "cssVars"}
+        {#await import("../src/panels/CssVarsPanel.svelte") then { default: CssVarsPanel }}
+          <CssVarsPanel />
+        {:catch error}
+          <p class="css-vars-load-error">
+            CSS Vars failed to load: {error instanceof Error ? error.message : String(error)}
+          </p>
+        {/await}
       {/if}
     </div>
   </div>
@@ -49,3 +54,12 @@
     {/each}
   </nav>
 </div>
+
+<style>
+  .css-vars-load-error {
+    margin: 0;
+    padding: 10px 12px;
+    color: #e57373;
+    font-size: 12px;
+  }
+</style>

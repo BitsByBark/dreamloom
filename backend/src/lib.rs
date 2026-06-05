@@ -6,6 +6,7 @@ mod git;
 mod injector;
 mod live_preview;
 mod misc;
+mod named_classes;
 mod welcomemodal;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

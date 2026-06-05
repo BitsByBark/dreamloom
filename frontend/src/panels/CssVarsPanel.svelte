@@ -7,7 +7,7 @@
     refreshCssVars,
     saveCssVarRow,
     deleteCssVarRow,
-  } from "../cssVars/cssVarsStore";
+  } from "../cssVars/cssVarsStore.svelte";
   import VarRow from "./cssVars/VarRow.svelte";
 
   const busy = $derived(cssVarsStore.loading || cssVarsStore.saving);

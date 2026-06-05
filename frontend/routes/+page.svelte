@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Menubar from "$misc/Menubar.svelte";
+  import StatusBar from "$misc/StatusBar.svelte";
   import LeftTabs from "$misc/LeftTabs.svelte";
   import Center from "$panels/center/index.svelte";
   import RightTabs from "$misc/RightTabs.svelte";
@@ -145,6 +146,8 @@
     {/if}
   </aside>
   </div>
+
+  <StatusBar />
 </div>
 
 <style>
