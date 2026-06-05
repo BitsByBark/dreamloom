@@ -144,7 +144,8 @@
   }
 
   .welcome-dialog {
-    width: min(600px, calc(100vw - 32px));
+    /* 4:5 width scale vs original 600px → 750px */
+    width: min(750px, calc(100vw - 32px));
     max-height: calc(100vh - 48px);
     overflow: auto;
     padding: 28px 32px 24px;

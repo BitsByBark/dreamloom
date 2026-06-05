@@ -1,9 +1,5 @@
-<p class="placeholder">CSS Vars</p>
+<script lang="ts">
+  import CssVarsPanel from "../../src/panels/CssVarsPanel.svelte";
+</script>
 
-<style>
-  .placeholder {
-    margin: 0;
-    padding: 8px 12px;
-    color: var(--text-muted);
-  }
-</style>
+<CssVarsPanel />
