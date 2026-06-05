@@ -141,7 +141,7 @@ jobs:
           if-no-files-found: error
 
   windows11:
-    name: Windows 11 installers
+    name: Windows 11 portable
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -169,14 +169,14 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Windows installers
-        run: pnpm exec tauri build --ci --no-sign
+      - name: Build Windows portable exe
+        run: pnpm exec tauri build --ci --no-bundle
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dreamloom-windows11
-          path: backend/target/release/bundle/**
+          path: backend/target/release/dreamloom.exe
           if-no-files-found: error
 
   macos:

@@ -109,7 +109,7 @@ chmod +x dreamloom
 Windows 11:
 
 ```text
-Download dreamloom-windows11.zip, unzip it, then run the .msi or .exe installer inside.
+Download dreamloom-windows11.zip, unzip it, then run dreamloom.exe.
 ```
 
 macOS:
