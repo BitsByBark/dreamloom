@@ -8,7 +8,6 @@
   <img src="https://img.shields.io/badge/Release%20Build-passing-2dc653?style=flat&logo=github" alt="Release Build passing" />
   <img src="https://img.shields.io/badge/version-0.1.0--beta-13B5B7?style=flat" alt="Version 0.1.0-beta" />
   <img src="https://img.shields.io/badge/license-AGPL--3.0-2383c4?style=flat" alt="License AGPL-3.0" />
-  <img src="https://img.shields.io/badge/status-pre--alpha-e8793c?style=flat" alt="Status pre-alpha" />
 </p>
 
 DreamLoom is a desktop visual editor for real Svelte projects. Click an element in the live preview, tweak its styles, and DreamLoom writes the code back into your repo instead of trapping it in some fake design file. It exists because the design-to-code handoff is cooked, and editing CSS blind is somehow still normal.
