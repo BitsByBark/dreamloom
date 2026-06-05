@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/images/Wordmark.png" alt="DreamLoom" width="96" />
+  <img src="./assets/images/Wordmark.png" alt="DreamLoom" width="500" />
 </p>
 
 <p align="center"><strong>Frontend and backend, finally on the same page.</strong></p>
