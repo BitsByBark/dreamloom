@@ -26,6 +26,7 @@ pub fn run() {
             crate::auth::github_device_flow_start,
             crate::auth::github_device_flow_poll,
             crate::auth::github_get_session,
+            crate::auth::github_list_repos,
             crate::auth::github_clear_session,
             crate::auth::github_get_repo_status,
             crate::git::git_status,

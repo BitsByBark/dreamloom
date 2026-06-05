@@ -6,7 +6,7 @@ mod storage;
 
 use device_flow::{poll_device_flow, start_device_flow, DeviceFlowPollStatus};
 use git_status::repo_git_status;
-use github_api::fetch_profile;
+use github_api::{fetch_profile, fetch_repos};
 use serde::Serialize;
 use storage::{delete_token, get_token};
 
@@ -52,6 +52,14 @@ pub struct RepoStatusDto {
     pub lines_removed: u32,
     pub github_owner: Option<String>,
     pub github_repo: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GithubRepoDto {
+    pub full_name: String,
+    pub html_url: String,
+    pub private: bool,
 }
 
 fn profile_dto(login: String, avatar_url: String) -> GithubProfileDto {
@@ -124,6 +132,20 @@ pub async fn github_get_session() -> Result<GithubSessionDto, String> {
             avatar_url: None,
         }),
     }
+}
+
+#[tauri::command]
+pub async fn github_list_repos() -> Result<Vec<GithubRepoDto>, String> {
+    let token = get_token()?.ok_or_else(|| "not authenticated with GitHub".to_string())?;
+    let repos = fetch_repos(&token).await?;
+    Ok(repos
+        .into_iter()
+        .map(|repo| GithubRepoDto {
+            full_name: repo.full_name,
+            html_url: repo.html_url,
+            private: repo.private,
+        })
+        .collect())
 }
 
 #[tauri::command]

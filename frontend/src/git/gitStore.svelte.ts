@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { join } from "@tauri-apps/api/path";
 import { appState } from "$lib/app-state.svelte";
 import { refreshRepoMetrics } from "$auth/authStore.svelte";
+import { listGithubRepos, type GithubRepo } from "$auth/github";
 import {
   commitGit,
   fetchGitStatus,
@@ -21,12 +22,22 @@ export const gitStore = $state({
   error: null as string | null,
   branch: "",
   repoLabel: "",
+  selectedRepo: "",
+  githubRepos: [] as GithubRepo[],
   remoteUrl: null as string | null,
   files: [] as GitChangedFile[],
   commitMessage: "",
   gitignorePatterns: [] as string[],
   newGitignorePattern: "",
 });
+
+async function refreshGithubRepos(): Promise<void> {
+  try {
+    gitStore.githubRepos = await listGithubRepos();
+  } catch {
+    gitStore.githubRepos = [];
+  }
+}
 
 function repoLabelFromPath(projectPath: string, owner?: string, repo?: string): string {
   if (owner && repo) {
@@ -87,13 +98,19 @@ export async function refreshGitModal(): Promise<void> {
     gitStore.branch = status.branch;
     gitStore.remoteUrl = status.remoteUrl ?? null;
     gitStore.repoLabel = repoLabelFromPath(path, status.owner, status.repo);
+    gitStore.selectedRepo = gitStore.repoLabel;
     gitStore.files = status.files;
+    await refreshGithubRepos();
   } catch (err) {
     gitStore.error = err instanceof Error ? err.message : String(err);
     gitStore.files = [];
   } finally {
     gitStore.loading = false;
   }
+}
+
+export function selectGithubRepo(fullName: string): void {
+  gitStore.selectedRepo = fullName;
 }
 
 export async function loadGitignore(): Promise<void> {

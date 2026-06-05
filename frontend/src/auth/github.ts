@@ -34,6 +34,12 @@ export type RepoGitStatus = {
   githubRepo?: string;
 };
 
+export type GithubRepo = {
+  fullName: string;
+  htmlUrl: string;
+  private: boolean;
+};
+
 export async function deviceFlowStart(): Promise<DeviceFlowStart> {
   return invoke<DeviceFlowStart>("github_device_flow_start");
 }
@@ -52,6 +58,10 @@ export async function getSession(): Promise<GithubSession> {
 
 export async function clearSession(): Promise<void> {
   await invoke("github_clear_session");
+}
+
+export async function listGithubRepos(): Promise<GithubRepo[]> {
+  return invoke<GithubRepo[]>("github_list_repos");
 }
 
 export async function getRepoStatus(projectPath: string): Promise<RepoGitStatus> {

@@ -6,6 +6,7 @@
     commitOnly,
     gitStore,
     removeGitignorePattern,
+    selectGithubRepo,
     setGitModalTab,
     stageAllFiles,
     toggleFileStaged,
@@ -29,7 +30,23 @@
         />
       </svg>
       <div class="git-modal-header-text">
-        <h2 id="git-modal-title" class="git-modal-title">{gitStore.repoLabel || "Repository"}</h2>
+        <label id="git-modal-title" class="git-modal-repo-select-label" for="git-modal-repo-select"
+          >Repository</label
+        >
+        <select
+          id="git-modal-repo-select"
+          class="git-modal-repo-select"
+          value={gitStore.selectedRepo || gitStore.repoLabel}
+          onchange={(event) => selectGithubRepo(event.currentTarget.value)}
+        >
+          {#if gitStore.githubRepos.length === 0}
+            <option value={gitStore.repoLabel || "Repository"}>{gitStore.repoLabel || "Repository"}</option>
+          {:else}
+            {#each gitStore.githubRepos as repo (repo.fullName)}
+              <option value={repo.fullName}>{repo.fullName}{repo.private ? "  private" : ""}</option>
+            {/each}
+          {/if}
+        </select>
         {#if gitStore.branch}
           <span class="git-modal-branch">{gitStore.branch}</span>
         {/if}
@@ -189,10 +206,11 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(500px, calc(100vw - 32px));
-    max-height: calc(100vh - 48px);
+    width: min(500px, calc(100vw - 32px), calc(80vh - 38px));
+    aspect-ratio: 4 / 5;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     background: #0a0a0a;
     border: 1px solid var(--panel-border);
     border-radius: 4px;
@@ -220,15 +238,50 @@
   .git-modal-header-text {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .git-modal-title {
-    margin: 0;
-    font-size: 0.95em;
+  .git-modal-repo-select-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.62em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .git-modal-repo-select {
+    width: 100%;
+    min-width: 0;
+    height: 28px;
+    padding: 0 28px 0 8px;
+    border: 1px solid #2f2f2f;
+    border-radius: 3px;
+    appearance: none;
+    background:
+      linear-gradient(45deg, transparent 50%, var(--text-muted) 50%) calc(100% - 13px) 12px / 5px 5px no-repeat,
+      linear-gradient(135deg, var(--text-muted) 50%, transparent 50%) calc(100% - 8px) 12px / 5px 5px no-repeat,
+      #111111;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.82em;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .git-modal-repo-select:focus {
+    border-color: #555555;
+    outline: none;
+  }
+
+  .git-modal-repo-select option {
+    background: #111111;
+    color: var(--text);
   }
 
   .git-modal-branch {
@@ -284,6 +337,7 @@
     flex-direction: column;
     gap: 10px;
     padding: 12px 14px 14px;
+    flex: 1;
     min-height: 0;
     overflow: auto;
   }
@@ -298,7 +352,8 @@
     list-style: none;
     margin: 0;
     padding: 0;
-    max-height: 200px;
+    flex: 1;
+    min-height: 0;
     overflow: auto;
     border: 1px solid #2a2a2a;
     background: #111111;
