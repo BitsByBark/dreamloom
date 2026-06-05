@@ -72,7 +72,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build RPM
-        run: pnpm tauri build --ci --bundles rpm
+        run: pnpm exec tauri build --ci --bundles rpm
 
       - name: Upload Fedora RPM
         uses: actions/upload-artifact@v4
@@ -128,7 +128,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build portable binary
-        run: pnpm tauri build --ci --no-bundle
+        run: pnpm exec tauri build --ci --no-bundle
 
       - name: Package portable binary
         run: tar -czf dreamloom-arch-x86_64.tar.gz -C backend/target/release dreamloom
@@ -170,7 +170,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Windows installers
-        run: pnpm tauri build --ci --no-sign
+        run: pnpm exec tauri build --ci --no-sign
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -209,7 +209,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build macOS bundle
-        run: pnpm tauri build --ci --no-sign --skip-stapling
+        run: pnpm exec tauri build --ci --no-sign --skip-stapling
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
