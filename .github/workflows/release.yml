@@ -1,42 +1,63 @@
-name: release
+name: build artifacts
 
 on:
+  workflow_dispatch:
   push:
     branches:
+      - master
       - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+  TAURI_APP_PATH: backend
+  TAURI_FRONTEND_PATH: .
 
 jobs:
-  publish-tauri:
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: macos-latest
-            args: ""
-          - platform: ubuntu-latest
-            args: ""
-          - platform: windows-latest
-            args: ""
-
-    runs-on: ${{ matrix.platform }}
-    env:
-      TAURI_APP_PATH: backend
-      TAURI_FRONTEND_PATH: .
+  fedora-rpm:
+    name: Fedora RPM
+    runs-on: ubuntu-latest
+    container: fedora:latest
     steps:
+      - name: Install Fedora dependencies
+        run: |
+          dnf install -y \
+            cairo-devel \
+            curl \
+            dbus-devel \
+            file \
+            gcc \
+            gcc-c++ \
+            gdk-pixbuf2-devel \
+            git \
+            glib2-devel \
+            gtk3-devel \
+            libappindicator-gtk3-devel \
+            librsvg2-devel \
+            make \
+            openssl-devel \
+            pango-devel \
+            patchelf \
+            pkgconf-pkg-config \
+            rpm-build \
+            webkit2gtk4.1-devel
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 22
           cache: pnpm
 
       - name: Install Rust stable
@@ -47,30 +68,152 @@ jobs:
         with:
           workspaces: backend -> target
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-latest'
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build RPM
+        run: pnpm tauri build --ci --bundles rpm
+
+      - name: Upload Fedora RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: dreamloom-fedora-rpm
+          path: backend/target/release/bundle/rpm/*.rpm
+          if-no-files-found: error
+
+  arch-portable:
+    name: Arch Linux portable
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install Arch dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf
+          pacman -Syu --noconfirm \
+            base-devel \
+            curl \
+            dbus \
+            file \
+            git \
+            gtk3 \
+            libappindicator-gtk3 \
+            librsvg \
+            openssl \
+            patchelf \
+            pkgconf \
+            webkit2gtk-4.1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: backend -> target
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build and upload release assets
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build portable binary
+        run: pnpm tauri build --ci --no-bundle
+
+      - name: Package portable binary
+        run: tar -czf dreamloom-arch-x86_64.tar.gz -C backend/target/release dreamloom
+
+      - name: Upload Arch portable artifact
+        uses: actions/upload-artifact@v4
         with:
-          projectPath: .
-          tauriScript: pnpm run tauri
-          tagName: v__VERSION__
-          releaseName: DreamLoom v__VERSION__
-          releaseBody: See the assets below to download and install this version.
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+          name: dreamloom-arch-portable
+          path: dreamloom-arch-x86_64.tar.gz
+          if-no-files-found: error
+
+  windows11:
+    name: Windows 11 installers
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: backend -> target
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Windows installers
+        run: pnpm tauri build --ci --no-sign
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dreamloom-windows11
+          path: backend/target/release/bundle/**
+          if-no-files-found: error
+
+  macos:
+    name: macOS bundle
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: backend -> target
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build macOS bundle
+        run: pnpm tauri build --ci --no-sign --skip-stapling
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dreamloom-macos
+          path: backend/target/release/bundle/**
+          if-no-files-found: error

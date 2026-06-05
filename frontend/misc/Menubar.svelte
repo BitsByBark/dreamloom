@@ -9,25 +9,21 @@
   const frameless = $derived(settings.windowDecorations !== "native");
   const showWindowControls = $derived(settings.windowDecorations === "dreamloom");
 
-  let fileMenuOpen = $state(false);
-  let settingsMenuOpen = $state(false);
+  let menuAnchor = $state<"logo" | "user" | null>(null);
   let settingsModalOpen = $state(false);
 
-  function toggleFileMenu(event: MouseEvent) {
+  function toggleLogoMenu(event: MouseEvent) {
     event.stopPropagation();
-    settingsMenuOpen = false;
-    fileMenuOpen = !fileMenuOpen;
+    menuAnchor = menuAnchor === "logo" ? null : "logo";
   }
 
-  function toggleSettingsMenu(event: MouseEvent) {
+  function toggleUserMenu(event: MouseEvent) {
     event.stopPropagation();
-    fileMenuOpen = false;
-    settingsMenuOpen = !settingsMenuOpen;
+    menuAnchor = menuAnchor === "user" ? null : "user";
   }
 
   function closeMenus() {
-    fileMenuOpen = false;
-    settingsMenuOpen = false;
+    menuAnchor = null;
   }
 
   async function handleOpenDirectory(event: MouseEvent) {
@@ -57,41 +53,22 @@
 <svelte:window onclick={onWindowClick} />
 
 <header class="menubar ui-chrome">
-  <div class="menubar-brand" data-tauri-drag-region={frameless ? "" : undefined}>
-    <img class="menubar-wordmark" src={wordmarkUrl} alt="Dreamloom" />
-  </div>
-
   <div class="menu-root">
     <button
       type="button"
-      class="menu-trigger"
+      class="menubar-brand"
       aria-haspopup="menu"
-      aria-expanded={fileMenuOpen}
-      onclick={toggleFileMenu}
+      aria-expanded={menuAnchor === "logo"}
+      aria-label="Dreamloom menu"
+      onclick={toggleLogoMenu}
     >
-      File
+      <img class="menubar-wordmark" src={wordmarkUrl} alt="Dreamloom" />
     </button>
-    {#if fileMenuOpen}
+    {#if menuAnchor === "logo"}
       <div class="menu-dropdown" role="menu">
         <button type="button" role="menuitem" onclick={handleOpenDirectory}>
           Open Directory
         </button>
-      </div>
-    {/if}
-  </div>
-
-  <div class="menu-root">
-    <button
-      type="button"
-      class="menu-trigger"
-      aria-haspopup="menu"
-      aria-expanded={settingsMenuOpen}
-      onclick={toggleSettingsMenu}
-    >
-      Settings
-    </button>
-    {#if settingsMenuOpen}
-      <div class="menu-dropdown" role="menu">
         <button type="button" role="menuitem" onclick={handleOpenSettings}>
           Settings…
         </button>
@@ -104,7 +81,19 @@
     aria-hidden="true"
     data-tauri-drag-region={frameless ? "" : undefined}
   ></div>
-  <TopbarUser />
+  <div class="menu-root menu-root-user">
+    <TopbarUser menuOpen={menuAnchor === "user"} onmenu={toggleUserMenu} />
+    {#if menuAnchor === "user"}
+      <div class="menu-dropdown menu-dropdown-user" role="menu">
+        <button type="button" role="menuitem" onclick={handleOpenDirectory}>
+          Open Directory
+        </button>
+        <button type="button" role="menuitem" onclick={handleOpenSettings}>
+          Settings…
+        </button>
+      </div>
+    {/if}
+  </div>
   {#if showWindowControls}
     <WindowControls />
   {/if}
@@ -136,6 +125,16 @@
     height: 100%;
     padding: 5px 20px 5px 20px;
     border-right: 1px solid var(--panel-border);
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .menubar-brand:hover,
+  .menu-root:has(.menu-dropdown) .menubar-brand {
+    background: #1c1c1c;
   }
 
   .menubar-wordmark {
@@ -153,21 +152,9 @@
     position: relative;
   }
 
-  .menu-trigger {
+  .menu-root-user {
     display: flex;
-    align-items: center;
-    height: 100%;
-    padding: 0 12px;
-    border: none;
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    font: inherit;
-  }
-
-  .menu-trigger:hover,
-  .menu-root:has(.menu-dropdown) .menu-trigger {
-    background: #1c1c1c;
+    align-items: stretch;
   }
 
   .menu-dropdown {
@@ -179,6 +166,11 @@
     padding: 4px 0;
     background: #141414;
     border: 1px solid var(--panel-border);
+  }
+
+  .menu-dropdown-user {
+    right: 0;
+    left: auto;
   }
 
   .menu-dropdown button {

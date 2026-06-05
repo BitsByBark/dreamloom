@@ -1,21 +1,48 @@
 <script lang="ts">
-  import { authStore, connectGithub } from "$auth/authStore.svelte";
+  import { authStore } from "$auth/authStore.svelte";
   import { settings } from "$settings/settings.svelte";
+
+  type Props = {
+    menuOpen: boolean;
+    onmenu: (event: MouseEvent) => void;
+  };
+
+  let { menuOpen, onmenu }: Props = $props();
 
   const showTopbar = $derived(settings.topbarShowAvatar || settings.topbarShowUsername);
 </script>
 
 {#if authStore.status === "anonymous"}
   <div class="topbar-user">
-    <button type="button" class="topbar-connect" onclick={connectGithub}>CONNECT GITHUB</button>
+    <button
+      type="button"
+      class="topbar-user-menu topbar-user-menu-icon"
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      aria-label="Open Dreamloom menu"
+      onclick={onmenu}
+    >☰</button>
   </div>
 {:else if authStore.status === "loading"}
   <div class="topbar-user">
-    <span class="topbar-auth-loading">GITHUB...</span>
+    <button
+      type="button"
+      class="topbar-user-menu topbar-user-menu-icon"
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      aria-label="Open Dreamloom menu"
+      onclick={onmenu}
+    >☰</button>
   </div>
 {:else if authStore.status === "authenticated" && authStore.user && showTopbar}
   <div class="topbar-user">
-    <div class="topbar-user-info">
+    <button
+      type="button"
+      class="topbar-user-menu topbar-user-info"
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      onclick={onmenu}
+    >
       {#if settings.topbarShowUsername}
         <span class="topbar-user-name">{authStore.user.login}</span>
       {/if}
@@ -28,7 +55,18 @@
           height="24"
         />
       {/if}
-    </div>
+    </button>
+  </div>
+{:else}
+  <div class="topbar-user">
+    <button
+      type="button"
+      class="topbar-user-menu topbar-user-menu-icon"
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      aria-label="Open Dreamloom menu"
+      onclick={onmenu}
+    >☰</button>
   </div>
 {/if}
 
@@ -42,13 +80,39 @@
     min-width: 0;
   }
 
+  .topbar-user-menu {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .topbar-user-menu:hover,
+  .topbar-user-menu[aria-expanded="true"] {
+    background: #1c1c1c;
+  }
+
   .topbar-user-info {
     display: flex;
     align-items: center;
     gap: 28px;
     min-width: 0;
     font-size: 0.75em;
-    padding-left: 8px;
+    padding: 8px;
+  }
+
+  .topbar-user-menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--panel-border);
+    color: var(--text-muted);
+    font-size: 18px;
+    line-height: 1;
   }
 
   .topbar-user-avatar {
@@ -66,25 +130,4 @@
     flex-shrink: 0;
   }
 
-  .topbar-connect {
-    padding: 4px 8px;
-    border: 1px solid var(--panel-border);
-    background: transparent;
-    color: var(--accent, #aacc00);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.75em;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-  }
-
-  .topbar-connect:hover {
-    background: rgba(170, 204, 0, 0.08);
-  }
-
-  .topbar-auth-loading {
-    color: var(--text-muted);
-    font-size: 0.75em;
-    letter-spacing: 0.06em;
-  }
 </style>

@@ -1,6 +1,6 @@
 [package]
 name = "dreamloom"
-version = "0.1.0-indev"
+version = "0.1.0-beta"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -29,4 +29,3 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "rus
 # v3 has no default store — without platform features you get the mock keystore (nothing persists)
 keyring = { version = "3", features = ["apple-native", "windows-native", "linux-native-sync-persistent", "crypto-rust"] }
 dotenvy = "0.15"
-
