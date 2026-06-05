@@ -34,8 +34,28 @@ DreamLoom is a desktop visual editor for real Svelte projects. Click an element 
 - RPM packaging for Linux beta builds
 
 ## Roadmap
+## Roadmap
 
-See [`ROADMAP.md`](./ROADMAP.md).
+**v0.1.0-beta — done**  
+Core loop. Click → edit → write. Personal use only.
+
+**v0.2.0 — Effects**  
+Complete the properties panel. Box-shadow, opacity, transform, filter, backdrop-filter, transitions, animations.
+
+**v0.3.0 — Polish**  
+Feels like a real shipped product. Micro-interactions, CSS class nesting, responsive breakpoints, editor write mode.
+
+**v1.0.0 — Launch**  
+Public. Open core. Free for individuals, enterprise pays. Installers for Linux, macOS, Windows. Docs site.
+
+**v1.1.0 — Static**  
+Vanilla HTML + CSS support. No framework required.
+
+**v1.2.0 — React**  
+React support via CSS modules injector strategy.
+
+**v1.3.0 — Vue**  
+Vue support via scoped style block injector. Community injector API — bring your own framework.
 
 ## Built with
 
