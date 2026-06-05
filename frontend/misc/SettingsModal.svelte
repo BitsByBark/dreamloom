@@ -7,21 +7,52 @@
   import { appState } from "$lib/app-state.svelte";
   import { resetPanelSizes } from "$lib/layout.svelte";
   import { rescheduleAllEvictions } from "$lib/center-tabs.svelte";
-  import { persistSettings, settings } from "$settings/settings.svelte";
+  import { chooseDirectory } from "$lib/choose-directory";
+  import {
+    clearWorkingFolder,
+    persistSettings,
+    setWorkingFolder,
+    settings,
+  } from "$settings/settings.svelte";
   import {
     authStore,
     connectGithub,
     disconnectGithub,
   } from "$auth/authStore.svelte";
+  import CarouselSwitcher from "$misc/CarouselSwitcher.svelte";
   import {
     clampLogFontSize,
+    clampUndoStackDepth,
+    clampWindowDecorations,
     clampZoom,
     MIN_INACTIVE_EVICTION_DELAY_MS,
     MIN_LOG_FONT_SIZE,
     MAX_LOG_FONT_SIZE,
+    MIN_UNDO_STACK_DEPTH,
     MIN_ZOOM,
     MAX_ZOOM,
+    type WindowDecorationsMode,
   } from "$settings/storage";
+
+  const WINDOW_DECORATION_OPTIONS = [
+    { id: "none", label: "None" },
+    { id: "native", label: "Native" },
+    { id: "dreamloom", label: "Dreamloom" },
+  ] as const;
+
+  const WINDOW_DECORATION_NOTES: Record<WindowDecorationsMode, string> = {
+    none: "Frameless window with no in-app title bar buttons.",
+    native: "System title bar and window controls (default).",
+    dreamloom: "Frameless with custom minimize, maximize, and close in the top bar.",
+  };
+
+  const windowDecorationNote = $derived(
+    WINDOW_DECORATION_NOTES[settings.windowDecorations],
+  );
+
+  function setWindowDecorations(id: string) {
+    settings.windowDecorations = clampWindowDecorations(id);
+  }
 
   type SettingsTab = "behavior" | "accounts" | "debug";
 
@@ -44,6 +75,7 @@
     settings.uiZoom = clampZoom(settings.uiZoom);
     settings.textZoom = clampZoom(settings.textZoom);
     settings.logFontSize = clampLogFontSize(settings.logFontSize);
+    settings.undoStackDepth = clampUndoStackDepth(settings.undoStackDepth);
 
     const debugChanged = debugModeOnOpen !== settings.debugMode;
 
@@ -80,6 +112,17 @@
       event.preventDefault();
       void closeAndSave();
     }
+  }
+
+  async function chooseWorkingFolder() {
+    const picked = await chooseDirectory();
+    if (picked) {
+      await setWorkingFolder(picked);
+    }
+  }
+
+  function handleClearWorkingFolder() {
+    void clearWorkingFolder();
   }
 
   $effect(() => {
@@ -140,6 +183,14 @@
 
       {#if activeTab === "behavior"}
         <div class="tab-panel" role="tabpanel" aria-label="Behavior">
+          <CarouselSwitcher
+            label="Window decorations"
+            options={WINDOW_DECORATION_OPTIONS}
+            value={settings.windowDecorations}
+            note={windowDecorationNote}
+            onchange={setWindowDecorations}
+          />
+
           <label class="field">
             <span class="label">Inactive tab eviction delay (ms)</span>
             <input
@@ -147,6 +198,16 @@
               min={MIN_INACTIVE_EVICTION_DELAY_MS}
               step="1000"
               bind:value={settings.inactiveEvictionDelay}
+            />
+          </label>
+
+          <label class="field">
+            <span class="label">Undo history depth</span>
+            <input
+              type="number"
+              min={MIN_UNDO_STACK_DEPTH}
+              step="1"
+              bind:value={settings.undoStackDepth}
             />
           </label>
 
@@ -177,6 +238,34 @@
               Reset panel sizes
             </button>
           </div>
+
+          <div class="field">
+            <span class="label">Working folder</span>
+            <p class="note">
+              Subfolders here show as repositories on the welcome screen.
+            </p>
+            <input
+              type="text"
+              class="path-input"
+              readonly
+              value={settings.workingFolder || "Not set"}
+              placeholder="Not set"
+            />
+            <div class="path-actions">
+              <button type="button" class="action-btn" onclick={() => void chooseWorkingFolder()}>
+                Choose folder…
+              </button>
+              {#if settings.workingFolder}
+                <button
+                  type="button"
+                  class="action-btn action-btn-ghost"
+                  onclick={handleClearWorkingFolder}
+                >
+                  Clear
+                </button>
+              {/if}
+            </div>
+          </div>
         </div>
       {:else if activeTab === "accounts"}
         <div class="tab-panel" role="tabpanel" aria-label="Accounts">
@@ -201,7 +290,7 @@
               </button>
             {:else}
               <p class="note">
-                Connect GitHub to show your profile and repo stats in the top bar.
+                Connect GitHub to show your profile in the top bar.
               </p>
               <button
                 type="button"
@@ -225,6 +314,11 @@
               <input type="checkbox" bind:checked={settings.topbarShowUsername} />
               <span class="label">Username</span>
             </label>
+          </section>
+
+          <section class="accounts-section">
+            <h3 class="accounts-heading">Status bar</h3>
+            <p class="note">Git info along the bottom of the window when a project is open.</p>
             <label class="field field-row">
               <input type="checkbox" bind:checked={settings.topbarShowDiff} />
               <span class="label">Line diff (+added / removed−)</span>
@@ -400,6 +494,27 @@
   .action-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .action-btn-ghost {
+    color: var(--text-muted);
+  }
+
+  .path-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--panel-border);
+    background: #0a0a0a;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 12px;
+    word-break: break-all;
+  }
+
+  .path-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .accounts-section {

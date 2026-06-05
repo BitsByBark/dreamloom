@@ -12,6 +12,7 @@ import {
   type GitChangedFile,
 } from "./gitApi";
 import { clearUndoLog, formatUndoFooter } from "./undoStore";
+import { clearUndoHistory } from "$history/undoStore";
 
 export type GitModalTab = "commit" | "gitignore";
 
@@ -247,6 +248,7 @@ export async function commitOnly(): Promise<void> {
   try {
     await commitGit(path, message);
     clearUndoLog();
+    clearUndoHistory();
     gitStore.commitMessage = "";
     await refreshGitModal();
     await refreshRepoMetrics();
@@ -276,6 +278,7 @@ export async function commitAndPush(): Promise<void> {
     await commitGit(path, message);
     await pushGit(path);
     clearUndoLog();
+    clearUndoHistory();
     gitStore.commitMessage = "";
     await refreshGitModal();
     await refreshRepoMetrics();

@@ -23,6 +23,7 @@ const config = {
       $injector: "frontend/src/injector",
       $auth: "frontend/src/auth",
       $git: "frontend/src/git",
+      $history: "frontend/src/history",
       $assets: "assets",
     },
     adapter: adapter({
