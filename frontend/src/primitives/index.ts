@@ -28,6 +28,7 @@ export const EXTENDED_PRIMITIVES: PrimitiveItem[] = [
   { id: "table", label: "Table" },
   { id: "tabs", label: "Tabs" },
   { id: "form", label: "Form" },
+  { id: "toggle", label: "Toggle" },
 ];
 
 const VOID_TAGS = new Set([
