@@ -16,6 +16,8 @@ DreamLoom is a desktop visual editor for real Svelte projects. Click an element 
   <img src="./assets/images/scr-20260605-212613.png" alt="DreamLoom welcome modal" />
 </p>
 
+
+
 ## Features
 
 - Live project preview powered by your local dev server
@@ -33,7 +35,8 @@ DreamLoom is a desktop visual editor for real Svelte projects. Click an element 
 - Ctrl/Cmd+Z undo for property edits
 - RPM packaging for Linux beta builds
 
-## Roadmap
+
+
 ## Roadmap
 
 **v0.1.0-beta — done**  
@@ -57,12 +60,16 @@ React support via CSS modules injector strategy.
 **v1.3.0 — Vue**  
 Vue support via scoped style block injector. Community injector API — bring your own framework.
 
+
+
 ## Built with
 
 - Tauri v2
 - Svelte
 - Rust
 - CodeMirror
+
+
 
 ## Getting started
 
@@ -116,6 +123,8 @@ Unsigned macOS builds may get blocked by Gatekeeper. If you trust the artifact, 
 ```bash
 xattr -dr com.apple.quarantine DreamLoom.app
 ```
+
+
 
 ## Community
 
